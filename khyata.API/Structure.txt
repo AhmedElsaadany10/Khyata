@@ -1,0 +1,85 @@
+﻿Khyata Solution
+│
+├── Khyata.Shared
+│   │
+│   ├── Entities
+│   │   ├── User.cs
+│   │   ├── Workspace.cs
+│   │   ├── Customer.cs
+│   │   ├── Order.cs
+│   │   ├── CustomerPhone.cs
+│   │   ├── Measurement.cs
+│   │
+│   ├── Enums
+│   │   ├── UserRole.cs
+│   │   ├── OrderStatus.cs
+│   │   ├── WorkspaceStatus.cs
+│   │
+│   ├── Common
+│   │   ├── AuditableEntity.cs
+│   │   ├── Result.cs
+│   │   ├── ApiError.cs
+│   │   ├── PagedResult.cs
+│   │
+│   ├── DTOs
+│   │   ├── Auth
+│   │   ├── Orders
+│   │   ├── Customers
+│   │   ├── Workspaces
+│   │   ├── Employees
+│   │
+│   └── Extensions
+│       ├── ClaimsExtensions.cs
+│
+│
+├── Khyata.API (Main Application)
+│   │
+│   ├── Controllers
+│   │   ├── AuthController.cs
+│   │   ├── OrdersController.cs
+│   │   ├── CustomersController.cs
+│   │   ├── EmployeesController.cs
+│   │   ├── WorkspacesController.cs
+│   │
+│   ├── Middleware
+│   │   ├── GlobalExceptionMiddleware.cs
+│   │
+│   ├── Extensions
+│   │   ├── ControllerExtensions.cs
+│   │
+│   ├── Mapping
+│   │   ├── MappingProfile.cs
+│   │
+│   ├── Program.cs
+│   │
+│   ├── Infrastructure
+│   │   ├── AppDbContext.cs
+│   │   ├── Repositories
+│   │   │   ├── UserRepository.cs
+│   │   │   ├── OrderRepository.cs
+│   │   │   ├── CustomerRepository.cs
+│   │   │   ├── WorkspaceRepository.cs
+│   │   │
+│   │   ├── Services
+│   │   │   ├── TokenService.cs
+│   │   │
+│   │   ├── BackgroundServices
+│   │       ├── WorkspaceSuspensionService.cs
+│
+│
+├── Khyata.Admin
+│   │
+│   ├── Controllers
+│   │   ├── AdminUsersController.cs
+│   │   ├── WorkspacesController.cs
+│   │   ├── SystemController.cs
+│   │
+│   ├── Services
+│   │   ├── AdminRepository.cs
+│   │   ├── AdminDashboardService.cs
+│   │
+│   ├── Authentication
+│   │   ├── AdminTokenService.cs
+│   │
+│   ├── Program.cs
+│
