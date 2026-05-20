@@ -1,0 +1,116 @@
+# Khyata System
+
+A backend system built using ASP.NET Core and Clean Architecture.  
+The project is designed to support both main application APIs and a dedicated admin API with a scalable and maintainable structure.
+
+---
+
+# Tech Stack
+
+- ASP.NET Core Web API
+- Clean Architecture
+- Entity Framework Core
+- SQL Server
+- JWT Authentication
+- AutoMapper
+- Dependency Injection
+
+---
+
+# Project Structure
+
+Khyata
+│
+├── Khyata.API              Main application API
+├── Khyata.Admin            Admin API
+├── Khyata.Application      Business logic layer
+├── Khyata.Domain           Domain entities and enums
+├── Khyata.Infrastructure   Data access and repositories
+└── Khyata.sln              Solution file
+
+---
+
+# Architecture
+
+The system follows Clean Architecture principles:
+
+- Domain Layer: Core business entities and rules
+- Application Layer: Business logic and services
+- Infrastructure Layer: Database and external services
+- API Layer: Controllers and endpoints
+
+---
+
+# Features
+
+- JWT Authentication and Authorization
+- Role-based access control (Admin / User)
+- Customer management
+- Order management
+- Workspace management
+- Separation of concerns
+- Scalable architecture
+
+---
+
+# Run Locally
+
+## Clone the repository
+
+git clone https://github.com/USERNAME/Khyata.git
+
+---
+
+## Restore dependencies
+
+dotnet restore
+
+---
+
+## Update database
+
+dotnet ef database update
+
+---
+
+## Run main API
+
+dotnet run --project Khyata.API
+
+---
+
+## Run admin API
+
+dotnet run --project Khyata.Admin
+
+---
+
+# Configuration
+
+Update appsettings.json:
+
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=.;Database=KhyataDB;Trusted_Connection=True;"
+  },
+  "Jwt": {
+    "Key": "your-secret-key",
+    "Issuer": "Khyata",
+    "Audience": "KhyataUsers"
+  }
+}
+
+---
+
+# Notes
+
+- Admin API is separated for security and management purposes.
+- Shared logic is located in Application, Domain, and Infrastructure layers.
+- Both APIs depend on the same core architecture.
+
+---
+
+# Author
+
+Ahmed Elsaadany  
+.NET Backend Developer

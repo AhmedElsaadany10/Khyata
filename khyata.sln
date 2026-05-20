@@ -5,7 +5,7 @@ VisualStudioVersion = 17.14.36930.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "khyata.API", "khyata.API\khyata.API.csproj", "{5B33D1A2-C0C7-41D2-B5DC-1B2150F8D65D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Khyata.Application", "Khyata.Shared\Khyata.Application.csproj", "{DF9D099C-ADE7-41C2-831F-D2E0913D98D6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Khyata.Application", "Khyata.Application\Khyata.Application.csproj", "{DF9D099C-ADE7-41C2-831F-D2E0913D98D6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Khyata.Admin", "Khyata.Admin\Khyata.Admin.csproj", "{C3622283-83E3-4163-B011-2613A7B50934}"
 EndProject

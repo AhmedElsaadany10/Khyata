@@ -11,8 +11,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Khyata.Application\Khyata.Application.csproj" />
+    <ProjectReference Include="..\Khyata.Domain\Khyata.Domain.csproj" />
     <ProjectReference Include="..\Khyata.Infrastructure\Khyata.Infrastructure.csproj" />
-    <ProjectReference Include="..\Khyata.Shared\Khyata.Application.csproj" />
   </ItemGroup>
 
 </Project>
