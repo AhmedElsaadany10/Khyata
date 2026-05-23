@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.Metrics;
 
-namespace khyata.Domain.Entities
+namespace Khyata.Domain.Entities
 {
     public class Customer
     {

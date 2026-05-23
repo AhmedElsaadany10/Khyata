@@ -1,4 +1,4 @@
-﻿namespace khyata.Application.DTOs.Workspace
+﻿namespace Khyata.Application.DTOs.Workspace
 {
     public class WorkspaceResponseDto
     {

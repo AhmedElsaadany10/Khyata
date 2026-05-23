@@ -1,4 +1,4 @@
-﻿namespace khyata.Application.Helpers
+﻿namespace Khyata.Application.Helpers
 {
     public static class DateHelper
     {
@@ -7,7 +7,10 @@
             return new DateTime(
                 date.Year,
                 date.Month,
-                DateTime.DaysInMonth(date.Year, date.Month));
+                DateTime.DaysInMonth(date.Year, date.Month),
+                23, 59, 59,
+                DateTimeKind.Utc);
         }
+
     }
 }

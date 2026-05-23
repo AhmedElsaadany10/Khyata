@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace khyata.API.Migrations
+namespace Khyata.API.Migrations
 {
     /// <inheritdoc />
     public partial class InitialUpdateCreateNotes : Migration

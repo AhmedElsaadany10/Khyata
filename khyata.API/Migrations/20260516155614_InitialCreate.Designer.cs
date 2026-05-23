@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using khyata.Infrastructure.Persistence;
+using Khyata.Infrastructure.Data;
 
 #nullable disable
 
-namespace khyata.API.Migrations
+namespace Khyata.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     [Migration("20260516155614_InitialCreate")]
@@ -25,7 +25,7 @@ namespace khyata.API.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("khyata.API.Models.Customer", b =>
+            modelBuilder.Entity("Khyata.API.Models.Customer", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -64,7 +64,7 @@ namespace khyata.API.Migrations
                     b.ToTable("Customers");
                 });
 
-            modelBuilder.Entity("khyata.API.Models.CustomerPhone", b =>
+            modelBuilder.Entity("Khyata.API.Models.CustomerPhone", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -97,7 +97,7 @@ namespace khyata.API.Migrations
                     b.ToTable("CustomerPhones");
                 });
 
-            modelBuilder.Entity("khyata.API.Models.Measurements", b =>
+            modelBuilder.Entity("Khyata.API.Models.Measurements", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -143,7 +143,7 @@ namespace khyata.API.Migrations
                     b.ToTable("Measurements");
                 });
 
-            modelBuilder.Entity("khyata.API.Models.Order", b =>
+            modelBuilder.Entity("Khyata.API.Models.Order", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -202,7 +202,7 @@ namespace khyata.API.Migrations
                     b.ToTable("Orders");
                 });
 
-            modelBuilder.Entity("khyata.API.Models.User", b =>
+            modelBuilder.Entity("Khyata.API.Models.User", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -250,7 +250,7 @@ namespace khyata.API.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("khyata.API.Models.Workspace", b =>
+            modelBuilder.Entity("Khyata.API.Models.Workspace", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -287,9 +287,9 @@ namespace khyata.API.Migrations
                     b.ToTable("Workspaces");
                 });
 
-            modelBuilder.Entity("khyata.API.Models.Customer", b =>
+            modelBuilder.Entity("Khyata.API.Models.Customer", b =>
                 {
-                    b.HasOne("khyata.API.Models.Workspace", "Workspace")
+                    b.HasOne("Khyata.API.Models.Workspace", "Workspace")
                         .WithMany("Customers")
                         .HasForeignKey("WorkspaceId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -298,9 +298,9 @@ namespace khyata.API.Migrations
                     b.Navigation("Workspace");
                 });
 
-            modelBuilder.Entity("khyata.API.Models.CustomerPhone", b =>
+            modelBuilder.Entity("Khyata.API.Models.CustomerPhone", b =>
                 {
-                    b.HasOne("khyata.API.Models.Customer", "Customer")
+                    b.HasOne("Khyata.API.Models.Customer", "Customer")
                         .WithMany("Phones")
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -309,31 +309,31 @@ namespace khyata.API.Migrations
                     b.Navigation("Customer");
                 });
 
-            modelBuilder.Entity("khyata.API.Models.Measurements", b =>
+            modelBuilder.Entity("Khyata.API.Models.Measurements", b =>
                 {
-                    b.HasOne("khyata.API.Models.Customer", "Customer")
+                    b.HasOne("Khyata.API.Models.Customer", "Customer")
                         .WithOne("Measurements")
-                        .HasForeignKey("khyata.API.Models.Measurements", "CustomerId")
+                        .HasForeignKey("Khyata.API.Models.Measurements", "CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Customer");
                 });
 
-            modelBuilder.Entity("khyata.API.Models.Order", b =>
+            modelBuilder.Entity("Khyata.API.Models.Order", b =>
                 {
-                    b.HasOne("khyata.API.Models.User", "CreatedBy")
+                    b.HasOne("Khyata.API.Models.User", "CreatedBy")
                         .WithMany("CreatedOrders")
                         .HasForeignKey("CreatedById")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("khyata.API.Models.Customer", "Customer")
+                    b.HasOne("Khyata.API.Models.Customer", "Customer")
                         .WithMany("Orders")
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("khyata.API.Models.Workspace", "Workspace")
+                    b.HasOne("Khyata.API.Models.Workspace", "Workspace")
                         .WithMany("Orders")
                         .HasForeignKey("WorkspaceId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -346,9 +346,9 @@ namespace khyata.API.Migrations
                     b.Navigation("Workspace");
                 });
 
-            modelBuilder.Entity("khyata.API.Models.User", b =>
+            modelBuilder.Entity("Khyata.API.Models.User", b =>
                 {
-                    b.HasOne("khyata.API.Models.Workspace", "Workspace")
+                    b.HasOne("Khyata.API.Models.Workspace", "Workspace")
                         .WithMany("Users")
                         .HasForeignKey("WorkspaceId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -357,7 +357,7 @@ namespace khyata.API.Migrations
                     b.Navigation("Workspace");
                 });
 
-            modelBuilder.Entity("khyata.API.Models.Customer", b =>
+            modelBuilder.Entity("Khyata.API.Models.Customer", b =>
                 {
                     b.Navigation("Measurements");
 
@@ -366,12 +366,12 @@ namespace khyata.API.Migrations
                     b.Navigation("Phones");
                 });
 
-            modelBuilder.Entity("khyata.API.Models.User", b =>
+            modelBuilder.Entity("Khyata.API.Models.User", b =>
                 {
                     b.Navigation("CreatedOrders");
                 });
 
-            modelBuilder.Entity("khyata.API.Models.Workspace", b =>
+            modelBuilder.Entity("Khyata.API.Models.Workspace", b =>
                 {
                     b.Navigation("Customers");
 

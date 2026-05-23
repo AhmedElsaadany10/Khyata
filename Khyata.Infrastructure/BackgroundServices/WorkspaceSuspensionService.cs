@@ -1,5 +1,5 @@
-﻿using khyata.Infrastructure.Persistence;
-using khyata.Domain.Enums;
+﻿using Khyata.Infrastructure.Data;
+using Khyata.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;

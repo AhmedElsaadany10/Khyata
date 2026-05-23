@@ -1,4 +1,4 @@
-﻿namespace khyata.Application.DTOs.Order
+﻿namespace Khyata.Application.DTOs.Order
 {
     public class OrderQuery
     {

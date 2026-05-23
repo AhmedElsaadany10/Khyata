@@ -6,7 +6,7 @@ using System.Net;
 using System.Text.Json;
 using static Khyata.Application.Exceptions.ExceptionError;
 
-namespace khyata.Application.Middlewares
+namespace Khyata.Application.Middlewares
 {
     /// <summary>
     /// Catches all unhandled exceptions and maps them to the standard ApiError shape:

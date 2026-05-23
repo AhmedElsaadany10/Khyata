@@ -1,6 +1,6 @@
-﻿using khyata.Application.DTOs.Customer.Requests;
+﻿using Khyata.Application.DTOs.Customer.Requests;
 
-namespace khyata.Application.DTOs.Customer.Responses
+namespace Khyata.Application.DTOs.Customer.Responses
 {
     public class CustomerResponseDto
     {

@@ -1,6 +1,6 @@
-﻿using khyata.Application.DTOs.Workspace;
+﻿using Khyata.Application.DTOs.Workspace;
 
-namespace khyata.Application.DTOs.Auth
+namespace Khyata.Application.DTOs.Auth
 {
     public class RegisterResponseDto
     {

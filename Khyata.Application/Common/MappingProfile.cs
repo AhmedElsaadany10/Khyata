@@ -1,13 +1,16 @@
 ﻿using AutoMapper;
-using khyata.Application.DTOs.Auth;
-using khyata.Application.DTOs.Customer.Requests;
-using khyata.Application.DTOs.Customer.Responses;
-using khyata.Application.DTOs.Employee;
-using khyata.Application.DTOs.Order;
-using khyata.Application.DTOs.Workspace;
-using khyata.Domain.Enums;
-using khyata.Application.Helpers;
-using khyata.Domain.Entities;
+using Khyata.Application.DTOs.Admin.AdminUser;
+using Khyata.Application.DTOs.Admin.Logs;
+using Khyata.Application.DTOs.Admin.WorkspaceUser;
+using Khyata.Application.DTOs.Auth;
+using Khyata.Application.DTOs.Customer.Requests;
+using Khyata.Application.DTOs.Customer.Responses;
+using Khyata.Application.DTOs.Employee;
+using Khyata.Application.DTOs.Order;
+using Khyata.Application.DTOs.Workspace;
+using Khyata.Application.Helpers;
+using Khyata.Domain.Entities;
+using Khyata.Domain.Enums;
 namespace Khyata.Application.Common
 {
     public class MappingProfile:Profile
@@ -84,7 +87,6 @@ namespace Khyata.Application.Common
 
                 .ForMember(d => d.CreatedBy,
                     opt => opt.MapFrom(o => o.CreatedBy));
-            // ... other mappings ...
 
             CreateMap<Order, OrderResponseDto>()
                 .ForMember(d => d.Status,
@@ -99,7 +101,20 @@ namespace Khyata.Application.Common
                     opt => opt.MapFrom(o =>
                         OrderStatusRules.AllowedFrom(o.Status).Select(s => s.ToString())));
 
-
+            // Admin
+                      CreateMap<Workspace, WorkspaceSummaryDto>()
+                .ForMember(d => d.Status, o => o.MapFrom(s => s.Status.ToString()))
+                .ForMember(d => d.OwnerName, o => o.MapFrom(s =>
+                    s.Users.FirstOrDefault(u => u.Role == Domain.Enums.WorkspaceRole.Owner) != null
+                        ? s.Users.First(u => u.Role == Domain.Enums.WorkspaceRole.Owner).Name : "---"))
+                .ForMember(d => d.OwnerPhone, o => o.MapFrom(s =>
+                    s.Users.FirstOrDefault(u => u.Role == Domain.Enums.WorkspaceRole.Owner) != null
+                        ? s.Users.First(u => u.Role == Domain.Enums.WorkspaceRole.Owner).Phone : "---"))
+                .ForMember(d => d.TotalOrders, o => o.MapFrom(s => s.Orders.Count))
+                .ForMember(d => d.TotalCustomers, o => o.MapFrom(s => s.Customers.Count))
+                .ForMember(d => d.TotalEmployees, o => o.MapFrom(s =>
+                    s.Users.Count(u => u.Role == Domain.Enums.WorkspaceRole.Employee && !u.IsDeleted)));
+            CreateMap<AuditLog, AuditLogDto>();
 
 
         }

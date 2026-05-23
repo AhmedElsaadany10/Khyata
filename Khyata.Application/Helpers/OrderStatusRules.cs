@@ -1,6 +1,6 @@
-﻿using khyata.Domain.Enums;
+﻿using Khyata.Domain.Enums;
 
-namespace khyata.Application.Helpers
+namespace Khyata.Application.Helpers
 {
 
     /// <summary>

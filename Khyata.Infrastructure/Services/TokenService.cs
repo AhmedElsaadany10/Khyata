@@ -1,12 +1,13 @@
-﻿using khyata.Application.Interfaces.Services;
-using khyata.Domain.Entities;
+﻿using Khyata.Application.Interfaces.IServices;
+using Khyata.Domain.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Reflection.Metadata;
 using System.Security.Claims;
 using System.Text;
 
-namespace khyata.Infrastructure.Services
+namespace Khyata.Infrastructure.Services
 {
     public class TokenService : ITokenService
     {
@@ -23,22 +24,40 @@ namespace khyata.Infrastructure.Services
 
         public string GenerateToken(User user)
         {
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub,user.Id.ToString()),
-                new Claim("wid",user.WorkspaceId.ToString()),
-                new Claim(ClaimTypes.Role,user.Role.ToString()),
-                new Claim(JwtRegisteredClaimNames.Jti,Guid.NewGuid().ToString()),
-            };
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new Claim("wid",  user.WorkspaceId.ToString()),
+            new Claim("workspace_role", user.Role.ToString()),
+            new Claim("type", "workspace"),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        };
+            return BuildToken(claims);
+        }
+        // Admin-scoped JWT (different audience = cannot be used on main API)
+        public string GenerateAdminToken(AdminUser admin, IList<string> roles)
+        {
+            var claims = new List<Claim>
+            {
+            new Claim(JwtRegisteredClaimNames.Sub, admin.Id.ToString()),
+            new(JwtRegisteredClaimNames.Name, admin.UserName!),
+            new Claim("type", "admin"),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        };
+            // Add all role claims — supports multi-role (SuperAdmin + Admin + Moderator)
+            claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
+            return BuildToken(claims.ToList());
+        }
+        private string BuildToken(IEnumerable<Claim> claims)
+        {
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var token = new JwtSecurityToken(
                 issuer: _config["Jwt:Issuer"],
                 audience: _config["Jwt:Audience"],
                 claims: claims,
                 expires: DateTime.UtcNow.AddSeconds(ExpiresInSeconds),
-                signingCredentials: creds
-                );
+                signingCredentials: creds);
             return _jwtHandler.WriteToken(token);
         }
     }

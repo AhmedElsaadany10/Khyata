@@ -1,4 +1,4 @@
-﻿namespace khyata.Application.DTOs.Customer.Responses
+﻿namespace Khyata.Application.DTOs.Customer.Responses
 {
     public class CustomerPhoneDto
     {

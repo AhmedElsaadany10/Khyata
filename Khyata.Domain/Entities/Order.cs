@@ -1,6 +1,7 @@
-﻿using khyata.Domain.Enums;
+﻿
+using Khyata.Domain.Enums;
 
-namespace khyata.Domain.Entities
+namespace Khyata.Domain.Entities
 {
     public class Order
     {

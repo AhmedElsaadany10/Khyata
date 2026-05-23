@@ -1,7 +1,7 @@
 ﻿using Khyata.Application.Common;
 using Microsoft.AspNetCore.Mvc;
 
-namespace khyata.Application.Extensions
+namespace Khyata.Application.Extensions
 {
     public static class ResultExtensions
     {/// <summary>

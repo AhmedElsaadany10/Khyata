@@ -1,14 +1,14 @@
-﻿using khyata.Application.DTOs.Auth;
-using khyata.Application.DTOs.Employee;
-using khyata.Domain.Enums;
-using khyata.Application.Extensions;
-using khyata.Application.Interfaces.Repositories;
+﻿using Khyata.Application.DTOs.Auth;
+using Khyata.Application.DTOs.Employee;
+using Khyata.Domain.Enums;
+using Khyata.Application.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using static Khyata.Application.Exceptions.ExceptionError;
+using Khyata.Application.Interfaces.IRepositories.ISystemRepositories;
 
-namespace khyata.API.Controllers
+namespace Khyata.API.Controllers
 {
     [Route("v1/auth")]
     [ApiController]

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace khyata.Application.DTOs.Employee
+namespace Khyata.Application.DTOs.Employee
 {
     public class CreateEmployeeDto
     {

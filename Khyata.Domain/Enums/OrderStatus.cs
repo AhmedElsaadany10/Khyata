@@ -1,4 +1,4 @@
-﻿namespace khyata.Domain.Enums
+﻿namespace Khyata.Domain.Enums
 {
     public enum OrderStatus
     {

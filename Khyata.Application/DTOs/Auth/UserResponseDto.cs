@@ -1,4 +1,4 @@
-﻿namespace khyata.Application.DTOs.Auth
+﻿namespace Khyata.Application.DTOs.Auth
 {
     public class UserResponseDto
     {

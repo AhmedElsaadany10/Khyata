@@ -1,6 +1,6 @@
-﻿using khyata.Domain.Enums;
+﻿using Khyata.Domain.Enums;
 
-namespace khyata.Domain.Entities
+namespace Khyata.Domain.Entities
 {
     public class User
     {
@@ -10,7 +10,7 @@ namespace khyata.Domain.Entities
         public string Name { get; set; } = string.Empty;
         public string Phone { get; set; } = string.Empty;
         public string PasswordHash { get; set; } = string.Empty;
-        public UserRole Role { get; set; }
+        public WorkspaceRole Role { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public bool IsDeleted { get; set; } = false;
         public DateTime? DeletedAt { get; set; }

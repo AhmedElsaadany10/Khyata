@@ -29,7 +29,7 @@
 │   │   ├── Employees
 │   │
 │   └── Extensions
-│       ├── ClaimsExtensions.cs
+│       ├── MainClaimsExtensions.cs
 │
 │
 ├── Khyata.API (Main Application)

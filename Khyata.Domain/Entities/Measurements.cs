@@ -1,4 +1,4 @@
-﻿namespace khyata.Domain.Entities
+﻿namespace Khyata.Domain.Entities
 {
     public class Measurements
     {

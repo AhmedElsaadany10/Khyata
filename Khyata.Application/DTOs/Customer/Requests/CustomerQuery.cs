@@ -1,4 +1,4 @@
-﻿namespace khyata.Application.DTOs.Customer.Requests
+﻿namespace Khyata.Application.DTOs.Customer.Requests
 {
     public class CustomerQuery
     {

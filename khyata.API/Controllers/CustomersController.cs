@@ -1,11 +1,11 @@
-﻿using khyata.Application.DTOs.Customer.Requests;
-using khyata.Application.Extensions;
-using khyata.Application.Interfaces.Repositories;
+﻿using Khyata.Application.DTOs.Customer.Requests;
+using Khyata.Application.Extensions;
+using Khyata.Application.Interfaces.IRepositories.ISystemRepositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace khyata.API.Controllers
+namespace Khyata.API.Controllers
 {
     [ApiController]
     [Route("v1/customers")]
@@ -49,7 +49,7 @@ namespace khyata.API.Controllers
             return this.ToActionResult(result);
         }
         /// <summary>Update customer name and/or measurements. Omit a field to leave it unchanged.</summary>
-        [HttpPut("{id:guid}")]
+        [HttpPatch("{id:guid}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateCustomer(Guid id, [FromBody] UpdateCustomerDto dto)
