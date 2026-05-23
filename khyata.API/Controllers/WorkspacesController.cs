@@ -24,7 +24,7 @@ namespace Khyata.API.Controllers
 
         /// <summary>Returns the current user's workspace details including subscription dates.</summary>
         [HttpGet()]
-        [Authorize(Policy = WorkspacePolicies.OwnerOnly)]
+       // [Authorize(Policy = WorkspacePolicies.OwnerOnly)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetMyWorkspace()
         {
@@ -32,7 +32,7 @@ namespace Khyata.API.Controllers
             return this.ToActionResult(result);
         }
         [HttpPatch("{workspaceId:guid}/name")]
-        [Authorize(Policy = WorkspacePolicies.OwnerOnly)]
+        //[Authorize(Policy = WorkspacePolicies.OwnerOnly)]
         public async Task<IActionResult> UpdateName(Guid workspaceId, WorkspaceNameDto dto)
         {
             if (User.GetRole() != WorkspaceRole.Owner.ToString())

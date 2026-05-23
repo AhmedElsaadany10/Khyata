@@ -24,7 +24,7 @@ namespace Khyata.API.Controllers
         /// The creator is captured automatically from the JWT — no need to supply it.
         /// </summary>
         [HttpPost]
-        [Authorize(Policy = WorkspacePolicies.Employee)]
+       // [Authorize(Policy = WorkspacePolicies.Employee)]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
@@ -42,7 +42,7 @@ namespace Khyata.API.Controllers
         /// Owners see all orders unless ?myOrders=true is passed.
         /// </summary>
         [HttpGet]
-        [Authorize(Policy = WorkspacePolicies.Employee)]
+       // [Authorize(Policy = WorkspacePolicies.Employee)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll([FromQuery] OrderQuery query)
         {
@@ -51,7 +51,7 @@ namespace Khyata.API.Controllers
         }
         /// <summary>Get a single order with customer info and creator details.</summary>
         [HttpGet("{id:guid}")]
-        [Authorize(Policy = WorkspacePolicies.Employee)]
+        //[Authorize(Policy = WorkspacePolicies.Employee)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetById(Guid id)
@@ -66,7 +66,7 @@ namespace Khyata.API.Controllers
         /// - Owners can update all fields; employees can only update status and payment.
         /// </summary>
         [HttpPatch("{id:guid}")]
-        [Authorize(Policy = WorkspacePolicies.Employee)]
+        //[Authorize(Policy = WorkspacePolicies.Employee)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

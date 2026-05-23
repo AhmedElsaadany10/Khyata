@@ -41,7 +41,7 @@ namespace Khyata.API.Controllers
         /// Owner: list all employees in the workspace (excludes soft-deleted by default).
         /// </summary>
         [HttpGet]
-        [Authorize(Policy = WorkspacePolicies.OwnerOnly)]
+        //[Authorize(Policy = WorkspacePolicies.OwnerOnly)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> GetEmployees(
@@ -62,7 +62,7 @@ namespace Khyata.API.Controllers
         /// The employee is auto-linked to the owner's workspace via the JWT claim.
         /// </summary>
         [HttpPost()]
-        [Authorize(Policy = WorkspacePolicies.OwnerOnly)]
+        //[Authorize(Policy = WorkspacePolicies.OwnerOnly)]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -80,7 +80,7 @@ namespace Khyata.API.Controllers
         /// Employee: update their own name or password (id must match the token sub).
         /// </summary>
         [HttpPatch("{id:guid}")]
-        [Authorize(Policy = WorkspacePolicies.OwnerOnly)]
+        //[Authorize(Policy = WorkspacePolicies.OwnerOnly)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -95,18 +95,20 @@ namespace Khyata.API.Controllers
         }
         /// <summary>Update the currently authenticated user's name or password.</summary>
         [HttpPatch("me")]
-        [Authorize(Policy = WorkspacePolicies.OwnerOnly)]
+        //[Authorize(Policy = WorkspacePolicies.OwnerOnly)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UpdateMyProfile([FromBody] UpdateEmployeeDto dto)
         {
+            if (User.GetRole() != WorkspaceRole.Owner.ToString())
+                throw new ExceptionError.ForbiddenException("Only owners can update their profile.");
             var result = await _userRepository.UpdateOwnerAsync(User.GetUserId(), dto);
 
             return this.ToActionResult(result);
         }
         /// <summary>Owner: soft-delete an employee. Sets IsDeleted = true; never removes the row.</summary>
         [HttpDelete("{id:guid}")]
-        [Authorize(Policy = WorkspacePolicies.OwnerOnly)]
+        //[Authorize(Policy = WorkspacePolicies.OwnerOnly)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

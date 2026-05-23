@@ -22,10 +22,23 @@ namespace Khyata.API
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // ===================== AddCors =====================
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAngular",
+                    policy =>
+                    {
+                        policy.WithOrigins("http://localhost:4200")
+                              .AllowAnyHeader()
+                              .AllowAnyMethod();
+                    });
+            });
+
             // ===================== DB =====================
             // ===================== DI =====================
             // ===================== AutoMapper =============
             builder.Services.AddMainInfrastructure(builder.Configuration);
+
 
             // ===================== JWT =====================
             builder.Services.AddJwtAuthentication(builder.Configuration);
@@ -53,6 +66,7 @@ namespace Khyata.API
                     };
                 };
             });            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+           
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
@@ -69,7 +83,7 @@ namespace Khyata.API
             }
 
             app.UseHttpsRedirection();
-
+            app.UseCors("AllowAngular");
             // Authentication must be enabled before Authorization
             app.UseAuthentication();
             app.UseAuthorization();

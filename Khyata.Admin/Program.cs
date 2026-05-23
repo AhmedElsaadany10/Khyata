@@ -65,6 +65,7 @@ namespace Khyata.Admin
             }
 
             app.UseHttpsRedirection();
+            app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().AllowCredentials().WithOrigins());
 
             app.UseAuthentication();   
             app.UseAuthorization();
