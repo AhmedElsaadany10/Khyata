@@ -13,5 +13,6 @@ namespace Khyata.Application.Interfaces.IRepositories.ISystemRepositories
         Task<Result<CustomerPhoneDto>> AddPhoneAsync(Guid workspaceId, Guid customerId, AddCustomerPhoneDto dto);
         Task<Result> RemovePhoneAsync(Guid workspaceId, Guid customerId, Guid phoneId);
         Task<Result<PagedResult<CustomersListItemDto>>> GetAllAsync(Guid workspaceId, CustomerQuery query);
+        Task<Result> RemoveAsync(Guid workspaceId,Guid customerId,Guid deletedBy);
     }
 }

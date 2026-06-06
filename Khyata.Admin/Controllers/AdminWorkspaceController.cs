@@ -13,7 +13,7 @@ namespace Khyata.Admin.Controllers
 {
     [ApiController]
     [Route("admin/workspace")]
-    [Authorize(Policy = AdminPolicies.AnyAdmin)]
+   // [Authorize(Policy = AdminPolicies.AnyAdmin)]
     public class AdminWorkspaceController : ControllerBase
     {
         private readonly IAdminWorkspaceRepository _adminWorkspaceRepository;

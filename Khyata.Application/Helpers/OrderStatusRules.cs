@@ -20,7 +20,15 @@ namespace Khyata.Application.Helpers
                 [OrderStatus.Cancelled] = []
             };
 
-            public static bool CanTransition(OrderStatus from, OrderStatus to) =>
+        private static readonly HashSet<OrderStatus> FinalStatuses = new()
+            {
+                OrderStatus.Delivered,
+                OrderStatus.Cancelled
+            };
+
+        public static bool IsFinal(OrderStatus status) => FinalStatuses.Contains(status);
+
+        public static bool CanTransition(OrderStatus from, OrderStatus to) =>
                 Allowed.TryGetValue(from, out var set) && set.Contains(to);
 
             public static IReadOnlySet<OrderStatus> AllowedFrom(OrderStatus from) =>

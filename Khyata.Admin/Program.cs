@@ -39,7 +39,7 @@ namespace Khyata.Admin
                 opt.AddDefaultPolicy(p => p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
             var app = builder.Build();
 
-            // ?? Migrate + seed roles + seed default SuperAdmin ????????????????????????????
+            //  Migrate + seed roles + seed default SuperAdmin =====================
             using (var scope = app.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;
@@ -55,7 +55,7 @@ namespace Khyata.Admin
                 await AdminSeeding.SeedAsync(roleManager, userManager, builder.Configuration, logger);
             }
 
-            // ?? Middleware pipeline ???????????????????????????????????????????????????????
+            //  Middleware pipeline 
             app.UseMiddleware<ExceptionMiddleware>();   // global exception handler — must be first
 
             if (app.Environment.IsDevelopment())

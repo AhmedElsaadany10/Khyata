@@ -32,7 +32,7 @@ namespace Khyata.API.Controllers
         public async Task<IActionResult> GetEmployeeById(Guid id)
         {
             if (User.GetRole() != WorkspaceRole.Owner.ToString())
-                throw new ExceptionError.ForbiddenException("Only owners can view employee details.");
+                throw new ExceptionError.ForbiddenException("Only owner can view employee details.");
 
             var result = await _userRepository.GetEmployeeByIdAsync(User.GetWorkspaceId(), id);
             return this.ToActionResult(result);
@@ -49,7 +49,7 @@ namespace Khyata.API.Controllers
             [FromQuery] int limit = 20)
         {
             if (User.GetRole() != WorkspaceRole.Owner.ToString())
-                throw new ExceptionError.ForbiddenException("Only owners can list employees.");
+                throw new ExceptionError.ForbiddenException("Only owner can list employees.");
 
             var result = await _userRepository.GetEmployeesAsync(
                 User.GetWorkspaceId(),
@@ -71,7 +71,7 @@ namespace Khyata.API.Controllers
             if (User.GetRole() != WorkspaceRole.Owner.ToString())
                 if (User.GetRole() != WorkspaceRole.Owner.ToString())
                     throw new ForbiddenException(
-                        "Only workspace owners can create employee accounts.");
+                        "Only workspace owner can create employee accounts.");
             var result = await _userRepository.CreateEmployeeAsync(User.GetWorkspaceId(), dto);
             return this.ToActionResult(result, successStatusCode: 201);
         }
@@ -101,7 +101,7 @@ namespace Khyata.API.Controllers
         public async Task<IActionResult> UpdateMyProfile([FromBody] UpdateEmployeeDto dto)
         {
             if (User.GetRole() != WorkspaceRole.Owner.ToString())
-                throw new ExceptionError.ForbiddenException("Only owners can update their profile.");
+                throw new ExceptionError.ForbiddenException("Only owner can update their profile.");
             var result = await _userRepository.UpdateOwnerAsync(User.GetUserId(), dto);
 
             return this.ToActionResult(result);
@@ -115,7 +115,7 @@ namespace Khyata.API.Controllers
         public async Task<IActionResult> DeleteEmployee(Guid id)
         {
             if (User.GetRole() != WorkspaceRole.Owner.ToString())
-                throw new ExceptionError.ForbiddenException("Only owners can deactivate employees.");
+                throw new ExceptionError.ForbiddenException("Only owner can deactivate employees.");
 
             var result = await _userRepository.DeleteEmployeeAsync(
                 User.GetWorkspaceId(), id, User.GetUserId());

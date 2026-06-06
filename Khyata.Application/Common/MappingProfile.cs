@@ -7,6 +7,7 @@ using Khyata.Application.DTOs.Customer.Requests;
 using Khyata.Application.DTOs.Customer.Responses;
 using Khyata.Application.DTOs.Employee;
 using Khyata.Application.DTOs.Order;
+using Khyata.Application.DTOs.Order.Payment;
 using Khyata.Application.DTOs.Workspace;
 using Khyata.Application.Helpers;
 using Khyata.Domain.Entities;
@@ -63,46 +64,84 @@ namespace Khyata.Application.Common
                            .FirstOrDefault()));
             // ── Order ─────────────────────────────────────────────────────────────
 
+            // ── Customer → OrderCustomerDto ─────────────────────────────
             CreateMap<Customer, OrderCustomerDto>()
                 .ForMember(d => d.PrimaryPhone,
                     opt => opt.MapFrom(c =>
-                            c.Phones
-                           .Where(p => p.IsPrimary)
-                           .Select(p => p.Number)
-                           .FirstOrDefault()));
+                        c.Phones
+                         .Where(p => p.IsPrimary)
+                         .Select(p => p.Number)
+                         .FirstOrDefault()
+                    ));
 
+            // ── User → OrderCreatedByDto ────────────────────────────────
             CreateMap<User, OrderCreatedByDto>()
                 .ForMember(d => d.Role,
                     opt => opt.MapFrom(s => s.Role.ToString()));
 
+            // ── Order → OrderResponseDto ────────────────────────────────
             CreateMap<Order, OrderResponseDto>()
                 .ForMember(d => d.Status,
                     opt => opt.MapFrom(o => o.Status.ToString()))
 
-                .ForMember(d => d.RemainingBalance,
-                    opt => opt.MapFrom(o => o.RemainingBalance))
+                .ForMember(d => d.TotalPaid,
+                    o => o.MapFrom(s => s.Payments.Sum(p => p.Amount)))
+
+                .ForMember(d => d.RemainingAmount,
+                    o => o.MapFrom(s => s.TotalPrice - s.Payments.Sum(p => p.Amount)))
+
+                .ForMember(d => d.Payments,
+                    o => o.MapFrom(s => s.Payments
+                        .OrderBy(p => p.PaymentDate)))
+
+               
+
+                .ForMember(d => d.StatusHistory,
+                    o => o.MapFrom(s => s.StatusHistory
+                        .OrderBy(h => h.UpdatedAt)))
 
                 .ForMember(d => d.Customer,
-                    opt => opt.MapFrom(o => o.Customer))
+                    o => o.MapFrom(o => o.Customer))
 
                 .ForMember(d => d.CreatedBy,
-                    opt => opt.MapFrom(o => o.CreatedBy));
+                    o => o.MapFrom(o => o.CreatedBy))
 
-            CreateMap<Order, OrderResponseDto>()
-                .ForMember(d => d.Status,
-                    opt => opt.MapFrom(o => o.Status.ToString()))
-                .ForMember(d => d.RemainingBalance,
-                    opt => opt.MapFrom(o => o.RemainingBalance))
-                .ForMember(d => d.Customer,
-                    opt => opt.MapFrom(o => o.Customer))
-                .ForMember(d => d.CreatedBy,
-                    opt => opt.MapFrom(o => o.CreatedBy))
                 .ForMember(d => d.AvailableStatuses,
-                    opt => opt.MapFrom(o =>
-                        OrderStatusRules.AllowedFrom(o.Status).Select(s => s.ToString())));
+                    o => o.MapFrom(o =>
+                        OrderStatusRules.AllowedFrom(o.Status)
+                            .Select(s => s.ToString())
+                    ));
 
+            // ── OrderStatusHistory → DTO ────────────────────────────────
+            CreateMap<OrderStatusHistory, OrderStatusHistoryDto>()
+                .ForMember(d => d.FromStatus,
+                    o => o.MapFrom(h => h.FromStatus.ToString()))
+
+                .ForMember(d => d.ToStatus,
+                    o => o.MapFrom(h => h.ToStatus.ToString()))
+
+                .ForMember(d => d.UpdatedBy,
+                    o => o.MapFrom(h =>
+                        h.UpdatedBy != null
+                            ? $"{h.UpdatedBy.Name}"
+                            : "System"
+                    ))
+
+                .ForMember(d => d.UpdatedAt,
+                    o => o.MapFrom(h => h.UpdatedAt));
+
+            // ── OrderPayment → DTO ──────────────────────────────────────
+            CreateMap<OrderPayment, OrderPaymentResponseDto>()
+                .ForMember(d => d.ReceivedBy,
+                    o => o.MapFrom(p =>
+                        p.ReceivedBy != null
+                            ? $"{p.ReceivedBy.Name}"
+                            : "Unknown"
+                    ));
+
+           
             // Admin
-                      CreateMap<Workspace, WorkspaceSummaryDto>()
+            CreateMap<Workspace, WorkspaceSummaryDto>()
                 .ForMember(d => d.Status, o => o.MapFrom(s => s.Status.ToString()))
                 .ForMember(d => d.OwnerName, o => o.MapFrom(s =>
                     s.Users.FirstOrDefault(u => u.Role == Domain.Enums.WorkspaceRole.Owner) != null

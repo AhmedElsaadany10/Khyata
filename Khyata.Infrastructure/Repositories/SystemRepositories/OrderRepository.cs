@@ -52,15 +52,25 @@ namespace Khyata.Infrastructure.Repositories.SystemRepositories
                 CreatedById = createdById,
                 Description = dto.Description,
                 TotalPrice = dto.TotalPrice,
-                AmountPaid = dto.AmountPaid,
                 ExtraNotes = dto.ExtraNotes,
                 DeliveryDate = dto.DeliveryDate,
 
                 Status = OrderStatus.New
             };
-
+            
             _context.Orders.Add(order);
 
+            if (dto.AmountPaid > 0)
+            {
+                order.Payments.Add(new OrderPayment
+                {
+                    Amount = dto.AmountPaid,
+                    PaymentDate = DateTime.UtcNow,
+                    ReceivedById = createdById,
+                    Notes = "Initial deposit at order creation",
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
             try
             {
                 await _context.SaveChangesAsync();
@@ -81,9 +91,16 @@ namespace Khyata.Infrastructure.Repositories.SystemRepositories
         }
         public async Task<Result<OrderResponseDto>> GetByIdAsync(Guid workspaceId, Guid orderId)
         {
-            var order = await _context.Orders.Include(o => o.Customer)
-            .ThenInclude(c => c.Phones).Include(o => o.CreatedBy).IgnoreQueryFilters()
-            .FirstOrDefaultAsync(o =>o.Id == orderId &&o.WorkspaceId == workspaceId);
+            var order = await _context.Orders
+            .Include(o => o.Customer).ThenInclude(c => c.Phones)
+            .Include(o => o.CreatedBy)
+            .Include(o => o.Payments.OrderBy(p => p.PaymentDate))
+                .ThenInclude(p => p.ReceivedBy)
+            .Include(o => o.StatusHistory.OrderBy(h => h.UpdatedAt))
+                .ThenInclude(h => h.UpdatedBy)
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(o => o.Id == orderId && o.WorkspaceId == workspaceId);
+
 
             if (order is null)
                 return Result<OrderResponseDto>.Failure(
@@ -119,12 +136,18 @@ namespace Khyata.Infrastructure.Repositories.SystemRepositories
             return Result<PagedResult<OrderResponseDto>>.Success(result);
         }
 
-        public async Task<Result<OrderResponseDto>> UpdateAsync(Guid workspaceId, Guid orderId, Guid updatedBy, UpdateOrderDto dto)
+        public async Task<Result<OrderResponseDto>> UpdateAsync(Guid workspaceId, Guid orderId, Guid updatedBy, string updaterRole, UpdateOrderDto dto)
         {
             // Retrieve the order entity directly from the database, not via GetByIdAsync (which returns Result<OrderResponseDto>)
             var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == orderId && o.WorkspaceId == workspaceId);
             if (order is null)
                 return Result<OrderResponseDto>.Failure(ApiError.NotFound("Order not found."));
+            // ── Guard: final status = read-only ──────────────────────────────────
+            if (OrderStatusRules.IsFinal(order.Status))
+                return Result<OrderResponseDto>.Failure(
+                    ApiError.UnprocessableEntity(
+                        $"Order is {order.Status} and cannot be modified."));
+
             // Status transition
             if (!string.IsNullOrWhiteSpace(dto.Status))
             {
@@ -137,10 +160,40 @@ namespace Khyata.Infrastructure.Repositories.SystemRepositories
                         ApiError.UnprocessableEntity(
                             $"Cannot transition from {order.Status} to {newStatus}."));
 
+                _context.OrderStatusHistories.Add(new OrderStatusHistory
+                {
+                    OrderId = order.Id,
+                    FromStatus = order.Status,
+                    ToStatus = newStatus,
+                    UpdatedById = updatedBy,
+                    UpdatedAt = DateTime.UtcNow
+                });
+
                 order.Status = newStatus;
+            }
+            // ── Price change — Owner only, not after Delivered ────────────────────
+            if (dto.TotalPrice.HasValue)
+            {
+                if (updaterRole != WorkspaceRole.Owner.ToString())
+                    return Result<OrderResponseDto>.Failure(
+                        ApiError.Forbidden("Only the workspace owner can modify the total price."));
+
+                if (dto.TotalPrice.Value < 0.01m)
+                    return Result<OrderResponseDto>.Failure(
+                        ApiError.BadRequest("Total price must be greater than zero."));
+
+                var totalPaidAtChange = await _context.OrderPayments
+                    .Where(p => p.OrderId == order.Id)
+                    .SumAsync(p => p.Amount);
+
+
+                order.TotalPrice = dto.TotalPrice.Value;
             }
             if (!string.IsNullOrWhiteSpace(dto.Description))
                 order.Description = dto.Description;
+
+            if (!string.IsNullOrWhiteSpace(dto.ExtraNotes))
+                order.ExtraNotes = dto.ExtraNotes;
 
             if (dto.TotalPrice.HasValue)
             {
@@ -149,13 +202,7 @@ namespace Khyata.Infrastructure.Repositories.SystemRepositories
                         ApiError.BadRequest("Total price must be greater than zero."));
                 order.TotalPrice = dto.TotalPrice.Value;
             }
-            if (dto.AmountPaid.HasValue)
-            {
-                if (dto.AmountPaid.Value < 0 || dto.AmountPaid.Value > order.TotalPrice)
-                    return Result<OrderResponseDto>.Failure(
-                        ApiError.UnprocessableEntity("Amount paid cannot be negative or exceed the total price."));
-                order.AmountPaid = dto.AmountPaid.Value;
-            }
+          
             if (dto.DeliveryDate.HasValue)
                 order.DeliveryDate = dto.DeliveryDate.Value;
 
@@ -165,7 +212,7 @@ namespace Khyata.Infrastructure.Repositories.SystemRepositories
             await _context.SaveChangesAsync();
 
             // Return updated order
-            return Result<OrderResponseDto>.Success(_mapper.Map<OrderResponseDto>(order));
+            return await GetByIdAsync(workspaceId, order.Id);
         }
     }
 }

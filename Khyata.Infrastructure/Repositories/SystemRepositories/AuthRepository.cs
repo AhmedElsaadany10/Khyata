@@ -1,16 +1,17 @@
 ﻿using AutoMapper;
-using Khyata.Infrastructure.Data;
+using BCrypt.Net;
+using Khyata.Application.Common;
 using Khyata.Application.DTOs.Auth;
 using Khyata.Application.DTOs.Employee;
 using Khyata.Application.DTOs.Workspace;
-using Khyata.Domain.Enums;
+using Khyata.Application.Helpers;
+using Khyata.Application.Interfaces.IRepositories.ISystemRepositories;
 using Khyata.Application.Interfaces.IServices;
 using Khyata.Domain.Entities;
+using Khyata.Domain.Enums;
+using Khyata.Infrastructure.Data;
 using Khyata.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
-using Khyata.Application.Common;
-using BCrypt.Net;
-using Khyata.Application.Interfaces.IRepositories.ISystemRepositories;
 
 namespace Khyata.Infrastructure.Repositories.SystemRepositories
 {
@@ -30,6 +31,12 @@ namespace Khyata.Infrastructure.Repositories.SystemRepositories
        
         public async Task<Result<AuthResponseDto>> LoginAsync(LoginDto dto)
         {
+            if (!ValidationHelper.IsEgyptianPhone(dto.Phone))
+            {
+                return Result<AuthResponseDto>.Failure(
+                    ApiError.BadRequest("Invalid phone number format."));
+            }
+
             var user = await _context.Users
             .IgnoreQueryFilters()     // allow soft-deleted check so we give a meaningful error
             .Include(u => u.Workspace)
@@ -73,6 +80,18 @@ namespace Khyata.Infrastructure.Repositories.SystemRepositories
         {
             try
             {
+                if (!ValidationHelper.IsEgyptianPhone(dto.Phone))
+                {
+                    return Result<RegisterResponseDto>.Failure(
+                        ApiError.BadRequest("Please enter a valid Egyptian mobile number."));
+                }
+
+                if (!ValidationHelper.IsStrongPassword(dto.Password))
+                {
+                    return Result<RegisterResponseDto>.Failure(
+                        ApiError.BadRequest("Password must contain uppercase, lowercase, number, and special character and be at least 8 characters."));
+                }
+
                 var phoneExists = await _context.Users
                     .IgnoreQueryFilters()
                     .AnyAsync(u => u.Phone == dto.Phone && u.Role == WorkspaceRole.Owner);

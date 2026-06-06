@@ -10,8 +10,6 @@ namespace Khyata.Application.DTOs.Order
 
         public decimal? TotalPrice { get; set; }
 
-        public decimal? AmountPaid { get; set; }
-
         public DateTime? DeliveryDate { get; set; }
 
         public string? Status { get; set; }

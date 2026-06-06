@@ -34,7 +34,7 @@ namespace Khyata.API.Controllers
             return Accepted(result.Value);
         }
         /// <summary>
-        /// Login for owners and employees.
+        /// Login for owner and employees.
         /// Returns a JWT on success; 401/403 on bad credentials or inactive workspace.
         /// </summary>
         [HttpPost("login")]

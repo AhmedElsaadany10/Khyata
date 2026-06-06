@@ -25,6 +25,17 @@ namespace Khyata.Infrastructure.Repositories.SystemRepositories
         }
         public async Task<Result<UserResponseDto>> CreateEmployeeAsync(Guid workspaceId, CreateEmployeeDto dto)
         {
+            if (!ValidationHelper.IsEgyptianPhone(dto.Phone))
+            {
+                return Result<UserResponseDto>.Failure(
+                    ApiError.BadRequest("Please enter a valid Egyptian mobile number."));
+            }
+
+            if (!ValidationHelper.IsStrongPassword(dto.Password))
+            {
+                return Result<UserResponseDto>.Failure(
+                    ApiError.BadRequest("Password must contain uppercase, lowercase, number, and special character and be at least 8 characters."));
+            }
             // Try to find any user record (including soft-deleted) with the same phone in the workspace
             var existing = await _context.Users
                 .IgnoreQueryFilters()

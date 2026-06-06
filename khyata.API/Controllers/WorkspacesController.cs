@@ -36,7 +36,7 @@ namespace Khyata.API.Controllers
         public async Task<IActionResult> UpdateName(Guid workspaceId, WorkspaceNameDto dto)
         {
             if (User.GetRole() != WorkspaceRole.Owner.ToString())
-                throw new ExceptionError.ForbiddenException("Only owners can update workspace Name.");
+                throw new ExceptionError.ForbiddenException("Only owner can update workspace Name.");
 
             var result = await _workspaceRepository.UpdateNameAsync(workspaceId, dto);
             return this.ToActionResult(result);

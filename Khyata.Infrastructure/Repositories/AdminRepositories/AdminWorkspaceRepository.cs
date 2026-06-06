@@ -168,9 +168,8 @@ namespace Khyata.Infrastructure.Repositories.AdminRepositories
 
                 TotalRevenue = await _context.Orders.SumAsync(o => (decimal?)o.TotalPrice) ?? 0,
 
-                TotalPaid = await _context.Orders.SumAsync(o => (decimal?)o.AmountPaid) ?? 0,
-
-                TotalOutstanding = await _context.Orders.SumAsync(o => (decimal?)(o.TotalPrice - o.AmountPaid)) ?? 0
+                TotalPaid = await _context.Orders.SumAsync(o => (decimal?)o.Payments.Sum(p => p.Amount)) ?? 0,
+                TotalOutstanding = await _context.Orders.SumAsync(o => (decimal?)(o.TotalPrice - o.Payments.Sum(p => p.Amount))) ?? 0
             };
             return Result<SystemStatsDto>.Success(stats);
         }

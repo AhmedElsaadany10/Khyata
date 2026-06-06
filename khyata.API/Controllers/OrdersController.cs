@@ -1,4 +1,5 @@
 ﻿using Khyata.Application.DTOs.Order;
+using Khyata.Application.DTOs.Order.Payment;
 using Khyata.Application.Extensions;
 using Khyata.Application.Interfaces.IRepositories.ISystemRepositories;
 using Khyata.Domain.Enums;
@@ -14,13 +15,14 @@ namespace Khyata.API.Controllers
     public class OrdersController : ControllerBase
     {
         private readonly IOrderRepository _orderRepository;
-
-        public OrdersController(IOrderRepository orderRepository)
+        private readonly IOrderPaymentRepository _paymentRepository;
+        public OrdersController(IOrderRepository orderRepository, IOrderPaymentRepository paymentRepository)
         {
             _orderRepository = orderRepository;
+            _paymentRepository = paymentRepository;
         }
         /// <summary>
-        /// Create a new order. Available to both owners and employees.
+        /// Create a new order. Available to both owner and employees.
         /// The creator is captured automatically from the JWT — no need to supply it.
         /// </summary>
         [HttpPost]
@@ -39,7 +41,7 @@ namespace Khyata.API.Controllers
         /// <summary>
         /// List orders with optional filters.
         /// Employees automatically see only the orders they created.
-        /// Owners see all orders unless ?myOrders=true is passed.
+        /// owner see all orders unless ?myOrders=true is passed.
         /// </summary>
         [HttpGet]
        // [Authorize(Policy = WorkspacePolicies.Employee)]
@@ -63,7 +65,7 @@ namespace Khyata.API.Controllers
         /// Partially update an order.
         /// - Any field omitted (null) is left unchanged.
         /// - Status changes are validated against the transition rules.
-        /// - Owners can update all fields; employees can only update status and payment.
+        /// - owner can update all fields; employees can only update status and payment.
         /// </summary>
         [HttpPatch("{id:guid}")]
         //[Authorize(Policy = WorkspacePolicies.Employee)]
@@ -75,7 +77,18 @@ namespace Khyata.API.Controllers
         {
 
             var result = await _orderRepository.UpdateAsync(
-                User.GetWorkspaceId(), id, User.GetUserId(), dto);
+                User.GetWorkspaceId(), id, User.GetUserId(), User.GetRole(), dto);
+
+            return this.ToActionResult(result);
+        }
+
+        // POST /workspaces/{workspaceId}/orders/{orderId}/payments
+        [HttpPost("{orderId}/payments")]
+        //[Authorize(Roles = "Owner,Employee")]
+        public async Task<IActionResult> AddPayment( Guid orderId,[FromBody] AddPaymentDto dto)
+        {
+            var result = await _paymentRepository
+                .AddPaymentAsync(User.GetWorkspaceId(), orderId, User.GetUserId(), dto);
 
             return this.ToActionResult(result);
         }

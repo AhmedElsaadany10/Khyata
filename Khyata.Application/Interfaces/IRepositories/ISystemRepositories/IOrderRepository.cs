@@ -8,7 +8,7 @@ namespace Khyata.Application.Interfaces.IRepositories.ISystemRepositories
     {
         Task<Result<OrderResponseDto>> CreateAsync(Guid workspaceId, Guid createdById, CreateOrderDto dto);
         Task<Result<OrderResponseDto>> GetByIdAsync(Guid workspaceId, Guid orderId);
-        Task<Result<OrderResponseDto>> UpdateAsync(Guid workspaceId, Guid orderId, Guid updatedBy, UpdateOrderDto dto);
+        Task<Result<OrderResponseDto>> UpdateAsync(Guid workspaceId, Guid orderId, Guid updatedBy, string updaterRole, UpdateOrderDto dto);
         Task<Result<PagedResult<OrderResponseDto>>> GetAllAsync(Guid workspaceId, Guid requestingUserId, OrderQuery query);
     }
 }

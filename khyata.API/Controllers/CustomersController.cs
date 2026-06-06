@@ -1,6 +1,8 @@
 ﻿using Khyata.Application.DTOs.Customer.Requests;
+using Khyata.Application.Exceptions;
 using Khyata.Application.Extensions;
 using Khyata.Application.Interfaces.IRepositories.ISystemRepositories;
+using Khyata.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -81,5 +83,21 @@ namespace Khyata.API.Controllers
             return this.ToActionResult(result);
         }
 
+        /// <summary>Delete a customer and all associated phones and measurements.</summary>
+        [HttpDelete("{customerId:guid}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Delete(Guid customerId)
+        {
+            if (User.GetRole() != WorkspaceRole.Owner.ToString())
+                throw new ExceptionError.ForbiddenException("Only owner can delete customer.");
+
+            var result = await _customerRepository
+                .RemoveAsync(User.GetWorkspaceId(), customerId, User.GetUserId());
+
+            return this.ToActionResult(result);
+
+        }
     }
 }

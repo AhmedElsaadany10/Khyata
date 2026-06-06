@@ -42,7 +42,8 @@ namespace Khyata.Infrastructure.Extensions
             services.AddScoped<ICustomerRepository, CustomerRepository>();
             services.AddScoped<IWorkspaceRepository, WorkspaceRepository>();
             services.AddScoped<IOrderRepository, OrderRepository>();
-
+            services.AddScoped<IOrderPaymentRepository, OrderPaymentRepository>();
+            services.AddScoped<IFinancialRepository, FinancialRepository>();
             // Token service (workspace JWT)
             services.AddScoped<ITokenService, TokenService>();
 

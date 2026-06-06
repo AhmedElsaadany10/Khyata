@@ -6,6 +6,8 @@ namespace Khyata.Application.DTOs.Customer.Requests
     {
         [MaxLength(200)]
         public string? Name { get; set; }
+        [MaxLength(500)]
+        public string? Address { get; set; } = null;
 
         public MeasurementsDto? Measurements { get; set; }
     }

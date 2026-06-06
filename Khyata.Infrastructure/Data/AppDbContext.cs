@@ -11,6 +11,8 @@ namespace Khyata.Infrastructure.Data
         public DbSet<CustomerPhone> CustomerPhones => Set<CustomerPhone>();
         public DbSet<Measurements> Measurements => Set<Measurements>();
         public DbSet<Order> Orders => Set<Order>();
+        public DbSet<OrderStatusHistory> OrderStatusHistories => Set<OrderStatusHistory>();
+        public DbSet<OrderPayment> OrderPayments { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // ── Global query filters (soft delete) ────────────────────────────────
@@ -18,7 +20,7 @@ namespace Khyata.Infrastructure.Data
             // Use .IgnoreQueryFilters() when the admin layer needs to see deleted records.
             modelBuilder.Entity<User>().HasQueryFilter(u => !u.IsDeleted);
             modelBuilder.Entity<Customer>().HasQueryFilter(c => !c.IsDeleted);
-
+            modelBuilder.Entity<Order>().HasQueryFilter(o => !o.Customer.IsDeleted);
             // ── Workspace ─────────────────────────────────────────────────────────
             modelBuilder.Entity<Workspace>(e =>
             {
@@ -95,13 +97,14 @@ namespace Khyata.Infrastructure.Data
                 e.HasIndex(o => new { o.WorkspaceId, o.CreatedById });
                 e.Property(o => o.Description).HasMaxLength(1000);
                 e.Property(o => o.TotalPrice).HasPrecision(12, 2).IsRequired();
-                e.Property(o => o.AmountPaid).HasPrecision(12, 2).IsRequired();
+               // e.Property(o => o.AmountPaid).HasPrecision(12, 2).IsRequired();
                 e.Property(o => o.Status).HasConversion<string>().HasMaxLength(20);
-                e.Ignore(o => o.RemainingBalance); // computed, never stored
+               // e.Ignore(o => o.RemainingBalance); // computed, never stored
                 e.HasOne(o => o.Customer)
                  .WithMany(c => c.Orders)
                  .HasForeignKey(o => o.CustomerId)
-                 .OnDelete(DeleteBehavior.Restrict);
+                 .OnDelete(DeleteBehavior.Restrict)
+                 .IsRequired();
                 e.HasOne(o => o.CreatedBy)
                  .WithMany(u => u.CreatedOrders)
                  .HasForeignKey(o => o.CreatedById)
@@ -111,8 +114,36 @@ namespace Khyata.Infrastructure.Data
                  .HasForeignKey(o => o.WorkspaceId)
                  .OnDelete(DeleteBehavior.Cascade);
             });
-           
 
+            // ── OrderStatusHistory ────────────────────────────────────────────────────
+            modelBuilder.Entity<OrderStatusHistory>(e =>
+            {
+                e.HasKey(h => h.Id);
+
+                e.HasIndex(h => h.OrderId);
+                e.HasIndex(h => h.UpdatedById);
+                e.HasIndex(h => h.UpdatedAt);
+
+                e.Property(h => h.FromStatus)
+                 .HasConversion<string>()
+                 .HasMaxLength(20)
+                 .IsRequired();
+
+                e.Property(h => h.ToStatus)
+                 .HasConversion<string>()
+                 .HasMaxLength(20)
+                 .IsRequired();
+
+                e.HasOne(h => h.Order)
+                 .WithMany(o => o.StatusHistory)
+                 .HasForeignKey(h => h.OrderId)
+                 .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasOne(h => h.UpdatedBy)
+                 .WithMany()
+                 .HasForeignKey(h => h.UpdatedById)
+                 .OnDelete(DeleteBehavior.Restrict);
+            });
         }
 
         //public override Task<int> SaveChangesAsync(CancellationToken ct = default)

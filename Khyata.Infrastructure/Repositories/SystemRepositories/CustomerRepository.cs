@@ -1,14 +1,15 @@
 ﻿using AutoMapper;
-using Khyata.Infrastructure.Data;
+using Khyata.Application.Common;
+using Khyata.Application.DTOs.Auth;
 using Khyata.Application.DTOs.Customer.Requests;
 using Khyata.Application.DTOs.Customer.Responses;
 using Khyata.Application.Helpers;
-using Khyata.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
-using Khyata.Shared.Pagination;
-using Khyata.Application.Common;
-using Khyata.Infrastructure.Helpers;
 using Khyata.Application.Interfaces.IRepositories.ISystemRepositories;
+using Khyata.Domain.Entities;
+using Khyata.Infrastructure.Data;
+using Khyata.Infrastructure.Helpers;
+using Khyata.Shared.Pagination;
+using Microsoft.EntityFrameworkCore;
 
 namespace Khyata.Infrastructure.Repositories.SystemRepositories
 {
@@ -24,25 +25,91 @@ namespace Khyata.Infrastructure.Repositories.SystemRepositories
         }
         public async Task<Result<CustomerResponseDto>> CreateAsync(Guid workspaceId, Guid createdBy, CreateCustomerDto dto)
         {
-            var phoneExists = await _context.CustomerPhones
-           .AnyAsync(p => p.WorkspaceId == workspaceId && p.Number == dto.PrimaryPhone);
-            if (phoneExists)
+            if (!ValidationHelper.IsEgyptianPhone(dto.PrimaryPhone))
+            {
                 return Result<CustomerResponseDto>.Failure(
-                    ApiError.Conflict("This phone number is already registered in the workspace."));
+                    ApiError.BadRequest("Please enter a valid Egyptian mobile number."));
+            }
+
+            
+            var existingCustomer = await _context.Customers
+                .IgnoreQueryFilters()
+                .Include(c => c.Phones)
+                .Include(c => c.Measurements)
+                .FirstOrDefaultAsync(c =>
+                    c.WorkspaceId == workspaceId &&
+                    c.Phones.Any(p => p.Number == dto.PrimaryPhone));
+
+            // Customer exists and is active
+            if (existingCustomer is not null && !existingCustomer.IsDeleted)
+            {
+                return Result<CustomerResponseDto>.Failure(
+                    ApiError.Conflict(
+                        "This phone number is already registered in the workspace."));
+            }
+
+            // Customer exists but was soft-deleted => Restore
+            if (existingCustomer is not null && existingCustomer.IsDeleted)
+            {
+                existingCustomer.IsDeleted = false;
+                existingCustomer.DeletedAt = null;
+                existingCustomer.UpdatedBy = createdBy;
+                existingCustomer.UpdatedAt = DateTime.UtcNow;
+
+                existingCustomer.Name = dto.Name;
+                existingCustomer.Address = dto.Address;
+
+                if (dto.Measurements is not null)
+                {
+                    if (existingCustomer.Measurements is null)
+                    {
+                        existingCustomer.Measurements = new Measurements
+                        {
+                            CustomerId = existingCustomer.Id,
+                            WorkspaceId = workspaceId,
+                            CreatedBy = createdBy,
+                            Height = dto.Measurements.Height,
+                            Sleeve = dto.Measurements.Sleeve,
+                            ChestWidth = dto.Measurements.ChestWidth,
+                            Shoulder = dto.Measurements.Shoulder,
+                            Neck = dto.Measurements.Neck
+                        };
+                    }
+                    else
+                    {
+                        existingCustomer.Measurements.Height = dto.Measurements.Height;
+                        existingCustomer.Measurements.Sleeve = dto.Measurements.Sleeve;
+                        existingCustomer.Measurements.ChestWidth = dto.Measurements.ChestWidth;
+                        existingCustomer.Measurements.Shoulder = dto.Measurements.Shoulder;
+                        existingCustomer.Measurements.Neck = dto.Measurements.Neck;
+                        existingCustomer.Measurements.UpdatedBy = createdBy;
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+
+                return await GetByIdAsync(workspaceId, existingCustomer.Id);
+            }
+
+            // Create new customer
             var customer = new Customer
             {
                 WorkspaceId = workspaceId,
                 Name = dto.Name,
                 Address = dto.Address,
                 CreatedBy = createdBy,
-                Phones = [new CustomerPhone
+                Phones =
+                [
+                    new CustomerPhone
             {
                 WorkspaceId = workspaceId,
-                Number      = dto.PrimaryPhone,
-                IsPrimary   = true,
-                CreatedBy   = createdBy
-            }]
+                Number = dto.PrimaryPhone,
+                IsPrimary = true,
+                CreatedBy = createdBy
+            }
+                ]
             };
+
             if (dto.Measurements is not null)
             {
                 customer.Measurements = new Measurements
@@ -98,6 +165,12 @@ namespace Khyata.Infrastructure.Repositories.SystemRepositories
         }
         public async Task<Result<CustomerPhoneDto>> AddPhoneAsync(Guid workspaceId, Guid customerId, AddCustomerPhoneDto dto)
         {
+            if (!ValidationHelper.IsEgyptianPhone(dto.Number))
+            {
+                return Result<CustomerPhoneDto>.Failure(
+                    ApiError.BadRequest("Please enter a valid Egyptian mobile number."));
+            }
+
             var customer = await _context.Customers
            .Include(c => c.Phones)
            .FirstOrDefaultAsync(c => c.Id == customerId && c.WorkspaceId == workspaceId);
@@ -168,6 +241,7 @@ namespace Khyata.Infrastructure.Repositories.SystemRepositories
             if (!string.IsNullOrWhiteSpace(dto.Name))
             {
                 customer.Name = dto.Name;
+                customer.Address = dto.Address;
                 customer.UpdatedBy = updatedBy;
             }
             if (dto.Measurements is not null)
@@ -191,6 +265,27 @@ namespace Khyata.Infrastructure.Repositories.SystemRepositories
             }
             await _context.SaveChangesAsync();
             return Result<CustomerResponseDto>.Success(_mapper.Map<CustomerResponseDto>(customer));
+        }
+        public async Task<Result> RemoveAsync( Guid workspaceId,Guid customerId, Guid deletedBy)
+        {
+            var customer = await _context.Customers
+                .Include(c => c.Phones)
+                .FirstOrDefaultAsync(c =>
+                    c.Id == customerId &&
+                    c.WorkspaceId == workspaceId);
+
+            if (customer is null)
+                return Result.Failure(
+                    ApiError.NotFound("Customer not found."));
+
+            customer.IsDeleted = true;
+            customer.DeletedAt = DateTime.UtcNow;
+            customer.UpdatedBy = deletedBy;
+            customer.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            return Result.Success();
         }
     }
 }
