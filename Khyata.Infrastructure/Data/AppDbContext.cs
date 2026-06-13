@@ -13,6 +13,8 @@ namespace Khyata.Infrastructure.Data
         public DbSet<Order> Orders => Set<Order>();
         public DbSet<OrderStatusHistory> OrderStatusHistories => Set<OrderStatusHistory>();
         public DbSet<OrderPayment> OrderPayments { get; set; }
+        public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // ── Global query filters (soft delete) ────────────────────────────────
@@ -57,6 +59,15 @@ namespace Khyata.Infrastructure.Data
                  .WithMany(w => w.Customers)
                  .HasForeignKey(c => c.WorkspaceId)
                  .OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(c => c.CreatedBy)
+                  .WithMany()
+                  .HasForeignKey(c => c.CreatedById)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(c => c.UpdatedBy)
+                    .WithMany()
+                    .HasForeignKey(c => c.UpdatedById)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             // ── CustomerPhone ─────────────────────────────────────────────────────

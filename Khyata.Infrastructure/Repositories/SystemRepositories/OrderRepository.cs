@@ -109,16 +109,16 @@ namespace Khyata.Infrastructure.Repositories.SystemRepositories
             return Result<OrderResponseDto>.Success(
                 _mapper.Map<OrderResponseDto>(order));
         }
-        public async Task<Result<PagedResult<OrderResponseDto>>> GetAllAsync(Guid workspaceId, Guid requestingUserId, OrderQuery query)
+        public async Task<Result<PagedResult<OrderListItemDto>>> GetAllAsync(
+     Guid workspaceId,
+     Guid requestingUserId,
+     OrderQuery query)
         {
             var q = _context.Orders
-            .Include(o => o.Customer).ThenInclude(c => c.Phones)
-            .Include(o => o.CreatedBy)
-            .Where(o => o.WorkspaceId == workspaceId);
-            // Employees can only see orders they created
-            //if (role == UserRole.Employee.ToString())
-            //    q = q.Where(o => o.CreatedById == requestingUserId);
-             if (query.MyOrders)
+                .Where(o => o.WorkspaceId == workspaceId);
+
+            // Employees can only see their own orders
+            if (query.MyOrders)
                 q = q.Where(o => o.CreatedById == requestingUserId);
 
             if (!string.IsNullOrWhiteSpace(query.Status) &&
@@ -127,13 +127,50 @@ namespace Khyata.Infrastructure.Repositories.SystemRepositories
 
             if (query.CustomerId.HasValue)
                 q = q.Where(o => o.CustomerId == query.CustomerId.Value);
+
             q = q.OrderByDescending(o => o.CreatedAt);
 
             var result = await PaginationHelper.ToPagedResultAsync(
-                q, query.Page, Math.Clamp(query.Limit, 1, 100),
-                o => _mapper.Map<OrderResponseDto>(o));
+                q,
+                query.Page,
+                Math.Clamp(query.Limit, 1, 100),
+              o => new OrderListItemDto
+              {
+                  Id = o.Id,
+                  Description = o.Description,
 
-            return Result<PagedResult<OrderResponseDto>>.Success(result);
+                  TotalPrice = o.TotalPrice,
+
+                  TotalPaid = _context.OrderPayments
+        .Where(p => p.OrderId == o.Id)
+        .Sum(p => (decimal?)p.Amount) ?? 0,
+
+                  RemainingAmount =
+        o.TotalPrice -
+        (_context.OrderPayments
+            .Where(p => p.OrderId == o.Id)
+            .Sum(p => (decimal?)p.Amount) ?? 0),
+
+                  Status = o.Status.ToString(),
+
+                  DeliveredDate = o.DeliveryDate,
+                  CreatedBy = _context.Users
+                .Where(u => u.Id == o.CreatedById)
+                .Select(u => u.Name)
+                .FirstOrDefault() ?? "",
+
+                          CustomerName = _context.Customers
+                .Where(c => c.Id == o.CustomerId)
+                .Select(c => c.Name)
+                .FirstOrDefault() ?? "",
+
+                          CustomerPhone = _context.CustomerPhones
+                .Where(p => p.CustomerId == o.CustomerId && p.IsPrimary)
+                .Select(p => p.Number)
+                .FirstOrDefault() ?? ""
+                       });
+
+            return Result<PagedResult<OrderListItemDto>>.Success(result);
         }
 
         public async Task<Result<OrderResponseDto>> UpdateAsync(Guid workspaceId, Guid orderId, Guid updatedBy, string updaterRole, UpdateOrderDto dto)

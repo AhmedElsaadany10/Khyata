@@ -14,7 +14,8 @@ namespace Khyata.Admin.Controllers
 {
     [ApiController]
     [Route("admin/users")]
-   // [Authorize(Policy = AdminPolicies.SuperAdminOnly)]
+    [Authorize(Policy = AdminPolicies.SuperAdminOnly)]
+   // [Authorize]
     public class AdminUserController : ControllerBase
     {
         private readonly IAdminUserRepository _adminUserRepository;
@@ -22,6 +23,27 @@ namespace Khyata.Admin.Controllers
         public AdminUserController(IAdminUserRepository adminUserRepository)
         {
             _adminUserRepository = adminUserRepository;
+        }
+        [HttpGet("debug")]
+        public IActionResult Debug()
+        {
+            return Ok(new
+            {
+                User = User.Identity?.IsAuthenticated,
+                Name = User.Identity?.Name,
+                Claims = User.Claims.Select(c => new { c.Type, c.Value })
+            });
+        }
+
+        [HttpGet("whoami")]
+        public IActionResult WhoAmI()
+        {
+            return Ok(new
+            {
+                isAuth = User.Identity?.IsAuthenticated,
+                name = User.Identity?.Name,
+                claims = User.Claims.Select(x => new { x.Type, x.Value })
+            });
         }
         /// <summary>Get a single admin by id.</summary>
         [HttpGet("{id:guid}")]

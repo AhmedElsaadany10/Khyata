@@ -28,7 +28,7 @@ namespace Khyata.API
                 options.AddPolicy("AllowAngular",
                     policy =>
                     {
-                        policy.WithOrigins("http://localhost:4200")
+                        policy.WithOrigins("http://localhost:4200", "https://tailoring-97.vercel.app")
                               .AllowAnyHeader()
                               .AllowAnyMethod();
                     });
@@ -87,7 +87,7 @@ namespace Khyata.API
             // Authentication must be enabled before Authorization
             app.UseAuthentication();
             app.UseAuthorization();
-
+            app.UseMiddleware<AuditMiddleware>();
             app.MapControllers();
 
             app.Run();

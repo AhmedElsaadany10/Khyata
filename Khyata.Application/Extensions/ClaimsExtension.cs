@@ -9,7 +9,8 @@ namespace Khyata.Application.Extensions
         public static Guid GetUserId(this ClaimsPrincipal user) =>
        Guid.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)
            ?? user.FindFirstValue("sub")!);
-
+        public static string GetUsername(this ClaimsPrincipal user) =>
+          user.FindFirstValue(ClaimTypes.Name) ?? user.FindFirstValue("name") ?? string.Empty;
         public static Guid GetWorkspaceId(this ClaimsPrincipal user)
         {
             var workspaceId = user.FindFirstValue("wid");

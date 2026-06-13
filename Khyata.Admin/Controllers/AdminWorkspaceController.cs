@@ -13,7 +13,7 @@ namespace Khyata.Admin.Controllers
 {
     [ApiController]
     [Route("admin/workspace")]
-   // [Authorize(Policy = AdminPolicies.AnyAdmin)]
+    [Authorize(Policy = AdminPolicies.AnyAdmin)]
     public class AdminWorkspaceController : ControllerBase
     {
         private readonly IAdminWorkspaceRepository _adminWorkspaceRepository;
@@ -59,7 +59,7 @@ namespace Khyata.Admin.Controllers
         /// SuperAdmin only — no current password needed.
         /// </summary>
         [HttpPatch("users/{id:guid}/reset-password")]
-        [Authorize(Policy = AdminPolicies.SuperAdminOnly)]
+       // [Authorize(Policy = AdminPolicies.SuperAdminOnly)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> ResetPassword(Guid id, [FromBody] ResetWorkspaceUserPasswordDto dto)
@@ -97,7 +97,7 @@ namespace Khyata.Admin.Controllers
         /// Only admins can reactivate a suspended workspace.
         /// </summary>
         [HttpPatch("{id:guid}/status")]
-        [Authorize(Policy = AdminPolicies.SuperAdminOnly)]
+        //[Authorize(Policy = AdminPolicies.SuperAdminOnly)]
         [ProducesResponseType(typeof(WorkspaceSummaryDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -114,22 +114,6 @@ namespace Khyata.Admin.Controllers
             var result = await _adminWorkspaceRepository.GetSystemStatsAsync();
             return this.ToActionResult(result);
         }
-        /// <summary>
-        /// Full audit trail. Filter by entity type and/or entity id.
-        /// Returns newest entries first. SuperAdmin only.
-        /// </summary>
-        [HttpGet("audit-logs")]
-        [ProducesResponseType(typeof(PagedResult<AuditLogDto>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> ListAuditLogs(
-            [FromQuery] Guid? entityId = null,
-            [FromQuery] string? entityType = null,
-            [FromQuery] int page = 1,
-            [FromQuery] int limit = 20)
-        {
-            var result = await _adminWorkspaceRepository.GetAuditLogsAsync(
-                entityId, entityType,
-                new PaginationQuery { Page = page, Limit = limit });
-            return this.ToActionResult(result);
-        }
+       
     }
 }

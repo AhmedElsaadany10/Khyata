@@ -31,7 +31,8 @@ namespace Khyata.Infrastructure.Repositories.SystemRepositories
        
         public async Task<Result<AuthResponseDto>> LoginAsync(LoginDto dto)
         {
-            if (!ValidationHelper.IsEgyptianPhone(dto.Phone))
+            var normalizedPhone = PhoneHelper.NormalizeEgyptianPhone(dto.Phone);
+            if (!ValidationHelper.IsEgyptianPhone(normalizedPhone))
             {
                 return Result<AuthResponseDto>.Failure(
                     ApiError.BadRequest("Invalid phone number format."));
@@ -40,7 +41,7 @@ namespace Khyata.Infrastructure.Repositories.SystemRepositories
             var user = await _context.Users
             .IgnoreQueryFilters()     // allow soft-deleted check so we give a meaningful error
             .Include(u => u.Workspace)
-            .FirstOrDefaultAsync(u => u.Phone == dto.Phone);
+            .FirstOrDefaultAsync(u => u.Phone == normalizedPhone);
 
             if (user is null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
                 return Result<AuthResponseDto>.Failure(
@@ -80,7 +81,8 @@ namespace Khyata.Infrastructure.Repositories.SystemRepositories
         {
             try
             {
-                if (!ValidationHelper.IsEgyptianPhone(dto.Phone))
+                var normalizedPhone = PhoneHelper.NormalizeEgyptianPhone(dto.Phone);
+                if (!ValidationHelper.IsEgyptianPhone(normalizedPhone))
                 {
                     return Result<RegisterResponseDto>.Failure(
                         ApiError.BadRequest("Please enter a valid Egyptian mobile number."));
@@ -94,7 +96,7 @@ namespace Khyata.Infrastructure.Repositories.SystemRepositories
 
                 var phoneExists = await _context.Users
                     .IgnoreQueryFilters()
-                    .AnyAsync(u => u.Phone == dto.Phone && u.Role == WorkspaceRole.Owner);
+                    .AnyAsync(u => u.Phone == normalizedPhone && u.Role == WorkspaceRole.Owner);
 
                 if (phoneExists)
                     return Result<RegisterResponseDto>.Failure(
@@ -105,7 +107,7 @@ namespace Khyata.Infrastructure.Repositories.SystemRepositories
                 {
                     WorkspaceId = workspace.Id,
                     Name = dto.Name,
-                    Phone = dto.Phone,
+                    Phone = normalizedPhone,
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
                     Role = WorkspaceRole.Owner,
                    // CreatedBy = null // bootstrapped — no actor yet

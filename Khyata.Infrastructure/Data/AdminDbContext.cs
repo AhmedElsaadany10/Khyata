@@ -17,7 +17,6 @@ namespace Khyata.Infrastructure.Data
             : base(options)
         {
         }
-        public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -43,16 +42,7 @@ namespace Khyata.Infrastructure.Data
             });
 
 
-            // ── AuditLog ──────────────────────────────────────────────────────────
-            builder.Entity<AuditLog>(e =>
-            {
-                e.HasKey(a => a.Id);
-                e.HasIndex(a => new { a.EntityType, a.EntityId });
-                e.HasIndex(a => a.Timestamp);
-                e.HasIndex(a => a.ActorId);
-                e.Property(a => a.Action).HasMaxLength(100).IsRequired();
-                e.Property(a => a.EntityType).HasMaxLength(100).IsRequired();
-            });
+           
         }
     }
 }

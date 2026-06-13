@@ -27,6 +27,7 @@ namespace Khyata.Infrastructure.Services
             var claims = new[]
             {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new Claim(JwtRegisteredClaimNames.Name, user.Name),
             new Claim("wid",  user.WorkspaceId.ToString()),
             new Claim("workspace_role", user.Role.ToString()),
             new Claim("type", "workspace"),

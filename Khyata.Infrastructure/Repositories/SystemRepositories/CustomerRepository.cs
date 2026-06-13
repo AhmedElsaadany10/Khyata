@@ -3,6 +3,8 @@ using Khyata.Application.Common;
 using Khyata.Application.DTOs.Auth;
 using Khyata.Application.DTOs.Customer.Requests;
 using Khyata.Application.DTOs.Customer.Responses;
+using Khyata.Application.DTOs.Order;
+using Khyata.Application.DTOs.Order.Payment;
 using Khyata.Application.Helpers;
 using Khyata.Application.Interfaces.IRepositories.ISystemRepositories;
 using Khyata.Domain.Entities;
@@ -31,14 +33,14 @@ namespace Khyata.Infrastructure.Repositories.SystemRepositories
                     ApiError.BadRequest("Please enter a valid Egyptian mobile number."));
             }
 
-            
+            var normalizedPhone = PhoneHelper.NormalizeEgyptianPhone(dto.PrimaryPhone);
             var existingCustomer = await _context.Customers
                 .IgnoreQueryFilters()
                 .Include(c => c.Phones)
                 .Include(c => c.Measurements)
                 .FirstOrDefaultAsync(c =>
                     c.WorkspaceId == workspaceId &&
-                    c.Phones.Any(p => p.Number == dto.PrimaryPhone));
+                    c.Phones.Any(p => p.Number == normalizedPhone));
 
             // Customer exists and is active
             if (existingCustomer is not null && !existingCustomer.IsDeleted)
@@ -53,7 +55,7 @@ namespace Khyata.Infrastructure.Repositories.SystemRepositories
             {
                 existingCustomer.IsDeleted = false;
                 existingCustomer.DeletedAt = null;
-                existingCustomer.UpdatedBy = createdBy;
+                existingCustomer.UpdatedById = createdBy;
                 existingCustomer.UpdatedAt = DateTime.UtcNow;
 
                 existingCustomer.Name = dto.Name;
@@ -97,13 +99,13 @@ namespace Khyata.Infrastructure.Repositories.SystemRepositories
                 WorkspaceId = workspaceId,
                 Name = dto.Name,
                 Address = dto.Address,
-                CreatedBy = createdBy,
+                CreatedById = createdBy,
                 Phones =
                 [
                     new CustomerPhone
             {
                 WorkspaceId = workspaceId,
-                Number = dto.PrimaryPhone,
+                Number = normalizedPhone,
                 IsPrimary = true,
                 CreatedBy = createdBy
             }
@@ -133,39 +135,91 @@ namespace Khyata.Infrastructure.Repositories.SystemRepositories
         public async Task<Result<CustomerResponseDto>> GetByIdAsync(Guid workspaceId, Guid customerId)
         {
             var customer = await _context.Customers
-           .Include(c => c.Measurements)
-           .Include(c => c.Phones)
-           .FirstOrDefaultAsync(c => c.Id == customerId && c.WorkspaceId == workspaceId);
+                .Where(c => c.Id == customerId && c.WorkspaceId == workspaceId)
+                .Select(c => new CustomerResponseDto
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Address = c.Address,
+                    CreatedAt = c.CreatedAt,
+                    CreatedBy = c.CreatedBy != null ? c.CreatedBy.Name : null,
+
+                    OrdersCount = c.Orders.Count,
+
+                    Measurements = c.Measurements == null ? null : new MeasurementsDto
+                    {
+                        Height = c.Measurements.Height,
+                        Sleeve = c.Measurements.Sleeve,
+                        ChestWidth = c.Measurements.ChestWidth,
+                        Shoulder = c.Measurements.Shoulder,
+                        Neck = c.Measurements.Neck
+                    },
+
+                    Phones = c.Phones
+                        .Select(p => new CustomerPhoneDto
+                        {
+                            Id = p.Id,
+                            Number = p.Number,
+                            IsPrimary = p.IsPrimary
+                        }).ToList(),
+
+                    Orders = c.Orders
+                        .Select(o => new CustomerOrderSummaryDto
+                        {
+                            Id = o.Id,
+                            Description = o.Description,
+                            TotalPrice = o.TotalPrice,
+                            TotalPaid = o.Payments.Sum(p => p.Amount), 
+                            Status = o.Status.ToString(),
+                            CreatedAt = o.CreatedAt,
+                            CreatedBy = o.CreatedBy != null ? o.CreatedBy.Name : null
+                        }).ToList()
+                })
+                .FirstOrDefaultAsync();
 
             return customer is null
                 ? Result<CustomerResponseDto>.Failure(ApiError.NotFound("Customer not found."))
-                : Result<CustomerResponseDto>.Success(_mapper.Map<CustomerResponseDto>(customer));
+                : Result<CustomerResponseDto>.Success(customer);
         }
 
         public async Task<Result<PagedResult<CustomersListItemDto>>> GetAllAsync(Guid workspaceId, CustomerQuery query)
         {
             var q = _context.Customers
-           .Include(c => c.Phones)
-           .Where(c => c.WorkspaceId == workspaceId);
+             .Where(c => c.WorkspaceId == workspaceId)
+             .Select(c => new CustomersListItemDto
+             {
+                 Id = c.Id,
+                 Name = c.Name,
+                 Address = c.Address,
+
+                 PrimaryPhone = c.Phones
+                     .Where(p => p.IsPrimary)
+                     .Select(p => p.Number)
+                     .FirstOrDefault() ?? "",
+
+                 OrdersCount = c.Orders.Count()
+             });
 
             if (!string.IsNullOrWhiteSpace(query.Search))
             {
                 q = q.Where(c =>
                     c.Name.Contains(query.Search) ||
-                    c.Phones.Any(p => p.Number.Contains(query.Search)));
+                    c.PrimaryPhone.Contains(query.Search));
             }
 
             q = q.OrderBy(c => c.Name);
 
             var result = await PaginationHelper.ToPagedResultAsync(
                 q, query.Page, Math.Clamp(query.Limit, 1, 100),
-                c => _mapper.Map<CustomersListItemDto>(c));
+                c => c );
 
             return Result<PagedResult<CustomersListItemDto>>.Success(result);
         }
         public async Task<Result<CustomerPhoneDto>> AddPhoneAsync(Guid workspaceId, Guid customerId, AddCustomerPhoneDto dto)
         {
-            if (!ValidationHelper.IsEgyptianPhone(dto.Number))
+            var normalizedPhone = PhoneHelper.NormalizeEgyptianPhone(dto.Number);
+
+            if (!ValidationHelper.IsEgyptianPhone(normalizedPhone))
             {
                 return Result<CustomerPhoneDto>.Failure(
                     ApiError.BadRequest("Please enter a valid Egyptian mobile number."));
@@ -178,7 +232,7 @@ namespace Khyata.Infrastructure.Repositories.SystemRepositories
             if (customer is null)
                 return Result<CustomerPhoneDto>.Failure(ApiError.NotFound("Customer not found."));
             var phoneExists = await _context.CustomerPhones
-           .AnyAsync(p => p.WorkspaceId == workspaceId && p.Number == dto.Number);
+           .AnyAsync(p => p.WorkspaceId == workspaceId && p.Number == normalizedPhone);
 
             if (phoneExists)
                 return Result<CustomerPhoneDto>.Failure(
@@ -193,7 +247,7 @@ namespace Khyata.Infrastructure.Repositories.SystemRepositories
             {
                 CustomerId = customerId,
                 WorkspaceId = workspaceId,
-                Number = dto.Number,
+                Number = normalizedPhone,
                 IsPrimary = dto.IsPrimary
             };
 
@@ -242,7 +296,7 @@ namespace Khyata.Infrastructure.Repositories.SystemRepositories
             {
                 customer.Name = dto.Name;
                 customer.Address = dto.Address;
-                customer.UpdatedBy = updatedBy;
+                customer.UpdatedById = updatedBy;
             }
             if (dto.Measurements is not null)
             {
@@ -280,7 +334,7 @@ namespace Khyata.Infrastructure.Repositories.SystemRepositories
 
             customer.IsDeleted = true;
             customer.DeletedAt = DateTime.UtcNow;
-            customer.UpdatedBy = deletedBy;
+            customer.UpdatedById = deletedBy;
             customer.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();

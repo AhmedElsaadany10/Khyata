@@ -22,7 +22,6 @@ namespace Khyata.Infrastructure.Repositories.AdminRepositories
     internal class AdminWorkspaceRepository : IAdminWorkspaceRepository
     {
         private readonly AppDbContext _context;
-        private readonly AdminDbContext _adminContext;
         private readonly IMapper _mapper;
 
         public AdminWorkspaceRepository(AppDbContext context, IMapper mapper)
@@ -84,13 +83,7 @@ namespace Khyata.Infrastructure.Repositories.AdminRepositories
 
             await _context.SaveChangesAsync();
 
-            await LogAsync(new AuditLog
-            {
-                Action = $"Workspace{newStatus}",
-                EntityType = "Workspace",
-                EntityId = id,
-                Details = "New Subscription"
-            });
+          
 
             return await GetWorkspaceAsync(id);
         }
@@ -138,58 +131,50 @@ namespace Khyata.Infrastructure.Repositories.AdminRepositories
 
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
             await _context.SaveChangesAsync();
-
-            await LogAsync(new AuditLog
-            {
-                Action = "PasswordReset",
-                EntityType = "User",
-                EntityId = userId
-            });
+          
 
             return Result.Success();
         }
         public async Task<Result<SystemStatsDto>> GetSystemStatsAsync()
         {
+            var totalRevenue = await _context.Orders
+                .SumAsync(o => (decimal?)o.TotalPrice) ?? 0;
+
+            var totalPaid = await _context.OrderPayments
+                .SumAsync(p => (decimal?)p.Amount) ?? 0;
+
             var stats = new SystemStatsDto
             {
                 TotalWorkspaces = await _context.Workspaces.CountAsync(),
 
-                ActiveWorkspaces = await _context.Workspaces.CountAsync(w => w.Status == WorkspaceStatus.Active),
+                ActiveWorkspaces = await _context.Workspaces
+                    .CountAsync(w => w.Status == WorkspaceStatus.Active),
 
-                PendingWorkspaces = await _context.Workspaces.CountAsync(w => w.Status == WorkspaceStatus.PendingActivation),
+                PendingWorkspaces = await _context.Workspaces
+                    .CountAsync(w => w.Status == WorkspaceStatus.PendingActivation),
 
-                SuspendedWorkspaces = await _context.Workspaces.CountAsync(w => w.Status == WorkspaceStatus.Suspended),
+                SuspendedWorkspaces = await _context.Workspaces
+                    .CountAsync(w => w.Status == WorkspaceStatus.Suspended),
 
-                TotalUsers = await _context.Users.IgnoreQueryFilters().CountAsync(),
+                TotalUsers = await _context.Users
+                    .IgnoreQueryFilters()
+                    .CountAsync(),
 
-                TotalCustomers = await _context.Customers.IgnoreQueryFilters().CountAsync(),
+                TotalCustomers = await _context.Customers
+                    .IgnoreQueryFilters()
+                    .CountAsync(),
 
                 TotalOrders = await _context.Orders.CountAsync(),
 
-                TotalRevenue = await _context.Orders.SumAsync(o => (decimal?)o.TotalPrice) ?? 0,
+                TotalRevenue = totalRevenue,
 
-                TotalPaid = await _context.Orders.SumAsync(o => (decimal?)o.Payments.Sum(p => p.Amount)) ?? 0,
-                TotalOutstanding = await _context.Orders.SumAsync(o => (decimal?)(o.TotalPrice - o.Payments.Sum(p => p.Amount))) ?? 0
+                TotalPaid = totalPaid,
+
+                TotalOutstanding = totalRevenue - totalPaid
             };
+
             return Result<SystemStatsDto>.Success(stats);
         }
-        public async Task<Result<PagedResult<AuditLogDto>>> GetAuditLogsAsync(Guid? entityId, string? entityType, PaginationQuery query)
-        {
-            var q = _adminContext.AuditLogs.AsQueryable();
-            if (entityId.HasValue) q = q.Where(a => a.EntityId == entityId.Value);
-            if (!string.IsNullOrWhiteSpace(entityType)) q = q.Where(a => a.EntityType == entityType);
-            q = q.OrderByDescending(a => a.Timestamp);
-
-            var result = await PaginationHelper.ToPagedResultAsync(
-                q, query.SafePage, query.SafeLimit,
-                a => _mapper.Map<AuditLogDto>(a));
-
-            return Result<PagedResult<AuditLogDto>>.Success(result);
-        }
-        public async Task LogAsync(AuditLog entry)
-        {
-            _adminContext.AuditLogs.Add(entry);
-            await _adminContext.SaveChangesAsync();
-        }
+      
     }
 }

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Khyata.Application.DTOs.Admin.AdminUser;
 using Khyata.Application.DTOs.Admin.Logs;
+using Khyata.Application.DTOs.Admin.Workspace_User;
 using Khyata.Application.DTOs.Admin.WorkspaceUser;
 using Khyata.Application.DTOs.Auth;
 using Khyata.Application.DTOs.Customer.Requests;
@@ -51,7 +52,8 @@ namespace Khyata.Application.Common
             CreateMap<Customer, CustomerResponseDto>()
                 .ForMember(d => d.Phones,
                     opt => opt.MapFrom(c => c.Phones))
-
+                  .ForMember(d => d.CreatedBy ,
+                     opt => opt.MapFrom(c => c.CreatedBy.Name))
                 .ForMember(d => d.Measurements,
                     opt => opt.MapFrom(c => c.Measurements));
 
@@ -100,11 +102,17 @@ namespace Khyata.Application.Common
                     o => o.MapFrom(s => s.StatusHistory
                         .OrderBy(h => h.UpdatedAt)))
 
-                .ForMember(d => d.Customer,
-                    o => o.MapFrom(o => o.Customer))
+                .ForMember(d => d.CustomerName,
+                    o => o.MapFrom(o => o.Customer.Name))
+
+                .ForMember(d => d.CustomerPhone,
+                    o => o.MapFrom(o => o.Customer.Phones
+                        .Where(p => p.IsPrimary)
+                        .Select(p => p.Number)
+                        .FirstOrDefault()))
 
                 .ForMember(d => d.CreatedBy,
-                    o => o.MapFrom(o => o.CreatedBy))
+                    o => o.MapFrom(o => o.CreatedBy.Name))
 
                 .ForMember(d => d.AvailableStatuses,
                     o => o.MapFrom(o =>
@@ -153,7 +161,14 @@ namespace Khyata.Application.Common
                 .ForMember(d => d.TotalCustomers, o => o.MapFrom(s => s.Customers.Count))
                 .ForMember(d => d.TotalEmployees, o => o.MapFrom(s =>
                     s.Users.Count(u => u.Role == Domain.Enums.WorkspaceRole.Employee && !u.IsDeleted)));
-            CreateMap<AuditLog, AuditLogDto>();
+            CreateMap<User, SystemUserDto>()
+                .ForMember(d => d.WorkspaceName,
+                    o => o.MapFrom(s => s.Workspace != null ? s.Workspace.Name : null))
+                .ForMember(d => d.Role,
+                    o => o.MapFrom(s => s.Role.ToString()))
+                .ForMember(d => d.IsDeleted,
+                 o => o.MapFrom(s => s.IsDeleted));
+            CreateMap<AuditLog, AuditLogResponseDto>();
 
 
         }

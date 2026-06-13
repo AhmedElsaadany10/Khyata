@@ -1,4 +1,6 @@
 ﻿using Khyata.Application.DTOs.Customer.Requests;
+using Khyata.Application.DTOs.Order;
+using Khyata.Domain.Entities;
 
 namespace Khyata.Application.DTOs.Customer.Responses
 {
@@ -8,6 +10,8 @@ namespace Khyata.Application.DTOs.Customer.Responses
 
         public string Name { get; set; } = default!;
         public string Address { get; set; } = default!;
+        public int OrdersCount { get; set; }
+        public string CreatedBy { get; set; } = default!;
 
         public DateTime CreatedAt { get; set; }
 
@@ -15,5 +19,8 @@ namespace Khyata.Application.DTOs.Customer.Responses
 
         public IReadOnlyList<CustomerPhoneDto> Phones { get; set; }
             = new List<CustomerPhoneDto>();
+
+        public IReadOnlyList<CustomerOrderSummaryDto> Orders { get; set; }
+            = new List<CustomerOrderSummaryDto>();
     }
 }

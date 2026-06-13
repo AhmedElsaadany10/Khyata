@@ -9,7 +9,7 @@ namespace Khyata.Domain.Entities
         public Guid Id { get; set; }= Guid.NewGuid();
         public Guid WorkspaceId { get; set; }
         public Guid CustomerId { get; set; }
-        public Guid? CreatedById { get; set; }
+        public Guid CreatedById { get; set; }
         public Guid? UpdatedById { get; set; }
         public string? Description { get; set; }
         public decimal TotalPrice { get; set; }

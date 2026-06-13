@@ -19,18 +19,16 @@ namespace Khyata.Infrastructure.Services
             // Any authenticated admin (SuperAdmin or Moderator)
             options.AddPolicy(AdminPolicies.AnyAdmin, policy =>
                 policy.RequireAuthenticatedUser()
-                      .RequireClaim("type", "admin"));
+                .RequireRole(AdminRoles.Moderator,AdminRoles.Admin, AdminRoles.SuperAdmin));
 
             // SuperAdmin only — for destructive or sensitive operations
             options.AddPolicy(AdminPolicies.SuperAdminOnly, policy =>
                 policy.RequireAuthenticatedUser()
-                      .RequireClaim("type", "admin")
                       .RequireRole(AdminRoles.SuperAdmin));
 
             // Moderator or higher
             options.AddPolicy(AdminPolicies.ModeratorOrAbove, policy =>
                 policy.RequireAuthenticatedUser()
-                      .RequireClaim("type", "admin")
                       .RequireRole(AdminRoles.Moderator, AdminRoles.SuperAdmin));
         });
 

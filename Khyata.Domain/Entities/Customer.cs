@@ -12,9 +12,10 @@ namespace Khyata.Domain.Entities
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
         public bool IsDeleted { get; set; } = false;
-        public Guid? CreatedBy { get; set; }
-        public Guid? UpdatedBy { get; set; }
-        
+        public Guid? CreatedById { get; set; }
+        public User? CreatedBy { get; set; }
+        public Guid? UpdatedById { get; set; }
+        public User? UpdatedBy { get; set; }
         public DateTime? DeletedAt { get; set; }
         public Workspace Workspace { get; set; } = null!;
         public Measurements? Measurements { get; set; }

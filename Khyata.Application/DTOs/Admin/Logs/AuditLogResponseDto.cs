@@ -4,12 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Khyata.Domain.Entities
+namespace Khyata.Application.DTOs.Admin.Logs
 {
-    // Khyata.Domain/Entities/AuditLog.cs
-    public class AuditLog
+    public class AuditLogResponseDto
     {
-        public Guid Id { get; set; } = Guid.NewGuid();
+        public Guid Id { get; set; }
         public Guid? ActorId { get; set; }
         public string? ActorName { get; set; }
         public string Action { get; set; } = null!;
@@ -19,8 +18,6 @@ namespace Khyata.Domain.Entities
         public string Endpoint { get; set; } = null!;
         public int StatusCode { get; set; }
         public long ExecutionTimeMs { get; set; }
-        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+        public DateTime Timestamp { get; set; }
     }
 }
-
-

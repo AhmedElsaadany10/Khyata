@@ -18,6 +18,18 @@ namespace Khyata.Admin
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // ===================== AddCors =====================
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAngular",
+                    policy =>
+                    {
+                        policy.WithOrigins("http://localhost:4200", "https://tailoring-97.vercel.app")
+                              .AllowAnyHeader()
+                              .AllowAnyMethod();
+                    });
+            });
+
             // ===================== DB =====================
             // ===================== DI =====================
             // ===================== AutoMapper =============
@@ -28,15 +40,13 @@ namespace Khyata.Admin
 
             // ===================== JWT =====================
             builder.Services.AddJwtAuthentication(builder.Configuration);
-            builder.Services.AddAuthorization();
             builder.Services.AddAdminAuthorization();
 
             // Swagger
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            builder.Services.AddCors(opt =>
-                opt.AddDefaultPolicy(p => p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
+         
             var app = builder.Build();
 
             //  Migrate + seed roles + seed default SuperAdmin =====================
@@ -65,9 +75,9 @@ namespace Khyata.Admin
             }
 
             app.UseHttpsRedirection();
-            app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().AllowCredentials().WithOrigins());
-
             app.UseAuthentication();   
+            app.UseCors("AllowAngular");
+            // app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().AllowCredentials().WithOrigins());
             app.UseAuthorization();
 
             app.MapControllers();

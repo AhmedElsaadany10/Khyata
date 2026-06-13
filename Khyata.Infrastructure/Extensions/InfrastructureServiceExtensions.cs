@@ -44,6 +44,8 @@ namespace Khyata.Infrastructure.Extensions
             services.AddScoped<IOrderRepository, OrderRepository>();
             services.AddScoped<IOrderPaymentRepository, OrderPaymentRepository>();
             services.AddScoped<IFinancialRepository, FinancialRepository>();
+            services.AddScoped<IAuditLogRepository, AuditLogRepository>();
+
             // Token service (workspace JWT)
             services.AddScoped<ITokenService, TokenService>();
 
@@ -98,6 +100,7 @@ namespace Khyata.Infrastructure.Extensions
             services.AddScoped<IAdminAuthRepository, AdminAuthRepository>();
             services.AddScoped<IAdminUserRepository, AdminUserRepository>();
             services.AddScoped<IAdminWorkspaceRepository, AdminWorkspaceRepository>();
+            services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 
             // Token service (workspace JWT)
             services.AddScoped<ITokenService, TokenService>();

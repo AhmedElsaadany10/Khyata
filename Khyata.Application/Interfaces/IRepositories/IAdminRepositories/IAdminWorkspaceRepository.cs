@@ -22,7 +22,5 @@ namespace Khyata.Application.Interfaces.IRepositories.IAdminRepositories
         Task<Result<PagedResult<SystemUserDto>>> GetAllUsersAsync(Guid? workspaceId, string? role, bool includeDeleted, PaginationQuery query);
         Task<Result<SystemUserDto>> GetUserAsync(Guid userId);
         Task<Result<SystemStatsDto>> GetSystemStatsAsync();
-        Task<Result<PagedResult<AuditLogDto>>> GetAuditLogsAsync(Guid? entityId, string? entityType, PaginationQuery query);
-        Task LogAsync(AuditLog entry);
     }
 }
