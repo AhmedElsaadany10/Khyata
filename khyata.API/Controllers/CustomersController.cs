@@ -41,6 +41,14 @@ namespace Khyata.API.Controllers
             var result = await _customerRepository.GetAllAsync(User.GetWorkspaceId(), query);
             return this.ToActionResult(result);
         }
+        /// <summary>List customers with optional name/phone search and pagination.</summary>
+        [HttpGet("debts")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetAllDebtCustomers([FromQuery] CustomerQuery query)
+        {
+            var result = await _customerRepository.GetAllCustomersWithDebtsAsync(User.GetWorkspaceId(), query);
+            return this.ToActionResult(result);
+        }
         /// <summary>Get a single customer with all phones and measurements.</summary>
         [HttpGet("{id:guid}", Name = nameof(GetById))]
         [ProducesResponseType(StatusCodes.Status200OK)]

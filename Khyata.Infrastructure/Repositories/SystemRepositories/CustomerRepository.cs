@@ -8,6 +8,7 @@ using Khyata.Application.DTOs.Order.Payment;
 using Khyata.Application.Helpers;
 using Khyata.Application.Interfaces.IRepositories.ISystemRepositories;
 using Khyata.Domain.Entities;
+using Khyata.Domain.Enums;
 using Khyata.Infrastructure.Data;
 using Khyata.Infrastructure.Helpers;
 using Khyata.Shared.Pagination;
@@ -340,6 +341,54 @@ namespace Khyata.Infrastructure.Repositories.SystemRepositories
             await _context.SaveChangesAsync();
 
             return Result.Success();
+        }
+
+        public async Task<Result<PagedResult<CustomerDebtDto>>> GetAllCustomersWithDebtsAsync(
+     Guid workspaceId,
+     CustomerQuery query)
+        {
+            // 1. Get raw data (Orders + Payments)
+            var data = await _context.Orders
+                .Where(o => o.WorkspaceId == workspaceId &&
+                            o.Status != OrderStatus.Cancelled)
+                .Select(o => new
+                {
+                    o.CustomerId,
+                    CustomerName = o.Customer.Name,
+                    Total = o.TotalPrice,
+                    Paid = o.Payments.Sum(p => (decimal?)p.Amount) ?? 0
+                })
+                .ToListAsync();
+
+            // 2. Compute debt in memory
+            var grouped = data
+                .GroupBy(x => new { x.CustomerId, x.CustomerName })
+                .Select(g => new CustomerDebtDto
+                {
+                    CustomerId = g.Key.CustomerId,
+                    CustomerName = g.Key.CustomerName,
+                    RemainingAmount = g.Sum(x => x.Total - x.Paid)
+                })
+                .Where(x => x.RemainingAmount > 0)
+                .OrderByDescending(x => x.RemainingAmount)
+                .ToList();
+
+            // 3. Pagination in memory (since we already loaded data)
+            var pagedItems = grouped
+                .Skip((query.Page - 1) * Math.Clamp(query.Limit, 1, 100))
+                .Take(Math.Clamp(query.Limit, 1, 100))
+                .ToList();
+
+            var result = new PagedResult<CustomerDebtDto>
+            {
+                Items = pagedItems,
+                TotalCount = grouped.Count,
+                Page = query.Page,
+                Limit = query.Limit,
+               
+            };
+
+            return Result<PagedResult<CustomerDebtDto>>.Success(result);
         }
     }
 }

@@ -22,10 +22,12 @@ namespace Khyata.Infrastructure.Repositories.SystemRepositories
             var (from, to) = ResolveDateRange(query);
 
             var orders = await _context.Orders
+                .Include(o => o.Payments)
                 .Where(o => o.WorkspaceId == workspaceId
                          && o.CreatedAt >= from
                          && o.CreatedAt <= to)
-                .ToListAsync();
+                    .AsNoTracking()
+                    .ToListAsync();
 
             var cancelled = orders.Where(o => o.Status == OrderStatus.Cancelled).ToList();
             var active = orders.Where(o => o.Status != OrderStatus.Cancelled).ToList();
@@ -33,8 +35,13 @@ namespace Khyata.Infrastructure.Repositories.SystemRepositories
             return Result<FinancialReportResponseDto>.Success(new FinancialReportResponseDto
             {
                 TotalOrdersAmount = active.Sum(o => o.TotalPrice),
-                TotalPaidAmount = active.Sum(o => o.Payments.Sum(p => p.Amount)),
-                TotalRemainingAmount = active.Sum(o => o.TotalPrice - o.Payments.Sum(p => p.Amount)),
+
+                TotalPaidAmount = active.Sum(o =>
+                    o.Payments?.Sum(p => p.Amount) ?? 0),
+
+                TotalRemainingAmount = active.Sum(o =>
+                    o.TotalPrice - (o.Payments?.Sum(p => p.Amount) ?? 0)),
+
                 TotalCancelledAmount = cancelled.Sum(o => o.TotalPrice),
                 NumberOfOrders = active.Count,
                 NumberOfCancelledOrders = cancelled.Count,
